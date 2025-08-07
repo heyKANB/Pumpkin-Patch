@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m1
     integrations:
-      app_store_connect: Apple Connect App Mgr
+      app_store_connect: PumpkinPatch
     environment:
       groups:
         - production
@@ -49,8 +49,8 @@ workflows:
           echo "Verifying build output..."
           ls -la dist/public/
           echo "Initializing Capacitor..."
-          # Initialize Capacitor with correct bundle ID
-          npx --yes @capacitor/cli@latest init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
+          # Initialize Capacitor with updated bundle ID
+          npx --yes @capacitor/cli@latest init "Pumpkin Patch" "com.huntergames.pumpkinpatch" --web-dir="dist/public"
           echo "Adding iOS platform..."
           npx --yes @capacitor/cli@latest add ios
           echo "Syncing with Capacitor..."

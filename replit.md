@@ -88,3 +88,4 @@ Farmer's Bolt: User prefers to manually select which crop type to plant using a 
 - **Google AdSense**: Integrated with app ID ca-app-pub-8626828126160251~5550874760 and ad unit ID ca-app-pub-8626828126160251/3935359007
 - **AdBanner Component**: Reusable ad component with header, sidebar, and footer configurations
 - **Strategic Ad Placement**: Header ads after navigation, footer ads at content end
+- **iOS Distribution**: Bundle ID com.huntergames.pumpkinpatch with PumpkinPatch provisioning profile for App Store Connect (App ID: 6749664824)
