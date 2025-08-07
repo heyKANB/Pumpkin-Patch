@@ -522,10 +522,6 @@ export default function Game() {
                         <span className="text-orange-600 font-bold">{readyToHarvest}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="text-golden" />
-                      <span className="text-dark-brown font-semibold">Day {player?.day || 1} - Autumn</span>
-                    </div>
                   </div>
                 </div>
               </CardContent>
