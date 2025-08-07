@@ -6,6 +6,15 @@ workflows:
     integrations:
       app_store_connect: Apple Connect App Mgr
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.huntergames.pumpkinpatch
+        vars:
+          Bundle_ID: "com.huntergames.pumpkinpatch"
+          Apple_ID: "6749664824"
+          App_Store_Connect_Key_ID: "7629KQWD3Z"
+          XCODE_Scheme: "App"
+          Code_Sign_Identity: "Apple Distribution"
       groups:
         - production
       node: 20.19.0
