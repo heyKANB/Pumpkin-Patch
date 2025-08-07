@@ -49,7 +49,7 @@ workflows:
           echo "Verifying build output..."
           ls -la dist/public/
           echo "Initializing Capacitor..."
-          # Initialize Capacitor properly
+          # Initialize Capacitor with correct bundle ID
           npx --yes @capacitor/cli@latest init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
           echo "Adding iOS platform..."
           npx --yes @capacitor/cli@latest add ios
