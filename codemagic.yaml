@@ -77,17 +77,18 @@ workflows:
           npx --yes @capacitor/cli@latest add ios
           echo "Syncing with Capacitor..."
           npx --yes @capacitor/cli@latest sync ios
-          echo "Configuring iOS project for automatic signing..."
-          # Configure automatic code signing and set proper team from environment
+          echo "Configuring iOS project for CodeMagic automatic signing..."
+          # Configure for automatic code signing with CodeMagic
           sed -i '' 's/CODE_SIGN_STYLE = Manual;/CODE_SIGN_STYLE = Automatic;/g' ios/App/App.xcodeproj/project.pbxproj
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = ".*";/PRODUCT_BUNDLE_IDENTIFIER = "com.huntergames.pumpkinpatch";/g' ios/App/App.xcodeproj/project.pbxproj
-          # Set development team for automatic signing
-          if [ ! -z "$APP_STORE_CONNECT_ISSUER_ID" ]; then
-            sed -i '' "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = \"$APP_STORE_CONNECT_ISSUER_ID\";/g" ios/App/App.xcodeproj/project.pbxproj
-          fi
-          # Remove manual provisioning profile settings
+          # Remove all manual provisioning settings to force automatic
           sed -i '' '/PROVISIONING_PROFILE_SPECIFIER/d' ios/App/App.xcodeproj/project.pbxproj
-          echo "iOS project configured for automatic signing"
+          sed -i '' '/PROVISIONING_PROFILE =/d' ios/App/App.xcodeproj/project.pbxproj
+          sed -i '' '/CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]/d' ios/App/App.xcodeproj/project.pbxproj
+          # Ensure automatic signing for all configurations
+          sed -i '' 's/ProvisioningStyle = Manual;/ProvisioningStyle = Automatic;/g' ios/App/App.xcodeproj/project.pbxproj
+          # Let CodeMagic handle the team assignment automatically
+          echo "iOS project configured for CodeMagic automatic provisioning"
       - name: Build iOS app
         script: |
           echo "Creating export options..."
@@ -111,8 +112,7 @@ workflows:
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
             --scheme "App" \
-            --export-options-plist "export_options.plist" \
-            --archive-flags="CODE_SIGN_STYLE=Automatic"
+            --export-options-plist "export_options.plist"
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"

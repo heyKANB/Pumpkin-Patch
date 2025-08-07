@@ -24,3 +24,10 @@ The app ID (6749664824) is used in App Store Connect for app identification, whi
 
 ## Security
 The API key (AuthKey_7629KQWD3Z.p8) should be uploaded securely to CodeMagic's environment variables or integration settings. Never commit private keys to version control.
+
+## Troubleshooting
+If you encounter provisioning profile errors:
+1. Ensure the "Apple Connect App Mgr" integration is properly configured in CodeMagic
+2. Verify the API key is uploaded to the integration settings
+3. Check that automatic code signing is enabled in the Xcode project
+4. The build process removes all manual provisioning settings to force automatic signing
