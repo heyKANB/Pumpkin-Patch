@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture. Players can plant multiple crop types (pumpkins and apples), grow diverse crops, and manage resources like coins, seeds, and harvested produce on a dynamic grid-based farm field. The game features real-time growth mechanics where crops take 60 minutes to mature, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing pumpkins into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, and autumn/October theming throughout.
+This is a web-based farming simulation game built with a full-stack architecture. Players can plant multiple crop types (pumpkins and apples), grow diverse crops, and manage resources like coins, seeds, and harvested produce on a dynamic grid-based farm field. The game features real-time growth mechanics where crops take 60 minutes to mature, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing pumpkins into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization.
 
 # User Preferences
 
@@ -83,3 +83,8 @@ Farmer's Bolt: User prefers to manually select which crop type to plant using a 
 - **clsx**: Utility for conditional CSS class concatenation
 - **tailwind-merge**: Utility for merging Tailwind CSS classes
 - **date-fns**: Date manipulation library for time-based game mechanics
+
+## Monetization and Analytics
+- **Google AdSense**: Integrated with app ID ca-app-pub-8626828126160251~5550874760 and ad unit ID ca-app-pub-8626828126160251/3935359007
+- **AdBanner Component**: Reusable ad component with header, sidebar, and footer configurations
+- **Strategic Ad Placement**: Header ads after navigation, footer ads at content end

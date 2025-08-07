@@ -8,6 +8,7 @@ import { type Player, type Plot } from "@shared/schema";
 import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat } from "lucide-react";
 import Marketplace from "@/components/marketplace";
 import { Kitchen } from "@/components/kitchen";
+import { HeaderAd, FooterAd } from "@/components/AdBanner";
 import { useState } from "react";
 
 const PLAYER_ID = "default";
@@ -402,6 +403,11 @@ export default function Game() {
         </div>
       </header>
 
+      {/* Header Ad */}
+      <div className="container mx-auto px-4 pt-4 relative z-10">
+        <HeaderAd />
+      </div>
+
       <div className="container mx-auto px-4 py-6 relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           
@@ -640,6 +646,9 @@ export default function Game() {
             <Kitchen player={player} />
           </div>
         )}
+
+        {/* Footer Ad */}
+        <FooterAd />
       </div>
     </div>
   );
