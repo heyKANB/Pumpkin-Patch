@@ -82,8 +82,7 @@ workflows:
           echo "Building iOS app with Xcode..."
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
-            --scheme "App" \
-            --archive-flags="-destination 'generic/platform=iOS'"
+            --scheme "App"
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
