@@ -48,3 +48,32 @@ workflows:
     artifacts:
       - dist/**
       - build/**
+    publishing:
+      app_store_connect:
+        auth: integration
+        # Bundle ID for Pumpkin Patch farming game
+        bundle_id: com.hunter-games.pumpkin-patch
+        # Apple ID for the app in App Store Connect
+        apple_id: 6749664824
+        submit_to_testflight: true
+        submit_to_app_store: false  # Set to true when ready for App Store release
+        # Beta app review info for TestFlight
+        beta_review_info:
+          contact_email: hunter.games.dev@example.com
+          contact_first_name: Hunter
+          contact_last_name: Games
+          contact_phone: "+1234567890"
+          demo_account_name: ""
+          demo_account_password: ""
+          notes: |
+            Pumpkin Patch is a farming simulation game with autumn theming.
+            Features include crop growing, food processing, and resource management.
+            No demo account required - the game starts immediately.
+        # Release notes for TestFlight builds
+        release_notes: |
+          • Autumn-themed farming simulation
+          • Plant pumpkins and apples
+          • Process crops into pies using the Kitchen
+          • Resource management with coins and seeds
+          • Field expansion and kitchen upgrades
+          • Google AdSense integration for monetization
