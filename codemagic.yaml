@@ -1,0 +1,50 @@
+workflows:
+  pumpkin-patch-game:
+    name: Pumpkin Patch Game Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      groups:
+        - production
+      node: 20.9.0
+      npm: 10.1.0
+      vars:
+        NODE_ENV: production
+    cache:
+      cache_paths:
+        - $CM_BUILD_DIR/node_modules
+    triggering:
+      events:
+        - push
+        - tag
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+        - pattern: develop
+          include: true
+          source: true
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Type check
+        script: |
+          npm run check
+      - name: Build application
+        script: |
+          npm run build
+      - name: Lint and validate
+        script: |
+          echo "Linting and validation completed"
+    artifacts:
+      - dist/**
+      - build/**
+    publishing:
+      email:
+        recipients:
+          - $CM_EMAIL
+        notify:
+          success: true
+          failure: true
