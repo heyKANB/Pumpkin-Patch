@@ -132,15 +132,15 @@ export class MemStorage implements IStorage {
     if (playerId === "default" && fieldSize === 3) {
       await this.updatePlot(playerId, 0, 1, { 
         state: "seedling", 
-        plantedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+        plantedAt: new Date(Date.now() - 10 * 60 * 1000) // 10 minutes ago
       });
       await this.updatePlot(playerId, 1, 0, { 
         state: "growing", 
-        plantedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000) // 4 days ago
+        plantedAt: new Date(Date.now() - 40 * 60 * 1000) // 40 minutes ago
       });
       await this.updatePlot(playerId, 2, 2, { 
         state: "mature", 
-        plantedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+        plantedAt: new Date(Date.now() - 70 * 60 * 1000) // 70 minutes ago
       });
     }
   }
@@ -201,14 +201,14 @@ export class MemStorage implements IStorage {
         continue;
       }
 
-      const daysSincePlanted = Math.floor((now.getTime() - plot.plantedAt.getTime()) / (1000 * 60 * 60 * 24));
+      const minutesSincePlanted = Math.floor((now.getTime() - plot.plantedAt.getTime()) / (1000 * 60));
       
       let newState: PlotState = plot.state;
-      if (daysSincePlanted >= 6) {
+      if (minutesSincePlanted >= 60) {
         newState = "mature";
-      } else if (daysSincePlanted >= 3) {
+      } else if (minutesSincePlanted >= 30) {
         newState = "growing";
-      } else if (daysSincePlanted >= 0) {
+      } else if (minutesSincePlanted >= 0) {
         newState = "seedling";
       }
 

@@ -38,7 +38,7 @@ export default function Game() {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
       toast({
         title: "Seed Planted! 🌱",
-        description: data.message || "Your pumpkin will grow in 6 days",
+        description: data.message || "Your pumpkin will mature in 60 minutes",
       });
     },
     onError: (error: any) => {
@@ -164,11 +164,11 @@ export default function Game() {
       harvestMutation.mutate({ row, col });
     } else {
       // For seedling and growing states, show info about when it will be ready
-      const daysPlanted = plot.plantedAt ? Math.floor((Date.now() - new Date(plot.plantedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
-      const daysRemaining = Math.max(0, 6 - daysPlanted);
+      const minutesPlanted = plot.plantedAt ? Math.floor((Date.now() - new Date(plot.plantedAt).getTime()) / (1000 * 60)) : 0;
+      const minutesRemaining = Math.max(0, 60 - minutesPlanted);
       toast({
         title: "Pumpkin Growing 🌱",
-        description: `This pumpkin will be ready to harvest in ${daysRemaining} days`,
+        description: `This pumpkin will be ready to harvest in ${minutesRemaining} minutes`,
       });
     }
   };
@@ -329,15 +329,15 @@ export default function Game() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-lg">🌱</span>
-                      <span className="text-dark-brown">Sprout (0-2 days)</span>
+                      <span className="text-dark-brown">Sprout (0-29 minutes)</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-lg">🌿</span>
-                      <span className="text-dark-brown">Growing (3-5 days)</span>
+                      <span className="text-dark-brown">Growing (30-59 minutes)</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-lg">🎃</span>
-                      <span className="text-dark-brown">Mature (6+ days)</span>
+                      <span className="text-dark-brown">Mature (60+ minutes)</span>
                     </div>
                   </div>
                 </div>

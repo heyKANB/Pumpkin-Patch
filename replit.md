@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a dynamic grid-based farm field. The game features real-time growth mechanics where pumpkins take 6 days to mature, and progressive field expansion from 3x3 up to 10x10 with incrementally increasing costs, creating an engaging progression system with autumn/October theming.
+This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a dynamic grid-based farm field. The game features real-time growth mechanics where pumpkins take 60 minutes to mature, and progressive field expansion from 3x3 up to 10x10 with incrementally increasing costs, creating an engaging progression system with autumn/October theming.
 
 # User Preferences
 
@@ -38,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 - **Field Expansion**: Dynamic field sizing from 3x3 to 10x10 with exponential cost scaling
 
 ## Game Logic Architecture
-- **Growth System**: Time-based progression where pumpkins mature over 6 days
+- **Growth System**: Time-based progression where pumpkins mature over 60 minutes
 - **Resource Management**: Coin-based economy for buying seeds, selling pumpkins, and field expansion
 - **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with increasing costs
 - **Expansion Economy**: Exponential cost scaling (50, 100, 200, 400... coins) for field upgrades
