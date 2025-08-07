@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
@@ -6,14 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
-import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, Bolt, TrendingUp } from "lucide-react";
+import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp } from "lucide-react";
 
 const PLAYER_ID = "default";
 
-type Tool = "plant" | "harvest";
-
 export default function Game() {
-  const [selectedTool, setSelectedTool] = useState<Tool>("plant");
   const { toast } = useToast();
 
   // Queries
@@ -158,10 +154,19 @@ export default function Game() {
     const plot = plots.find(p => p.row === row && p.col === col);
     if (!plot) return;
 
-    if (selectedTool === "plant" && plot.state === "empty") {
+    // Automatically determine action based on plot state
+    if (plot.state === "empty") {
       plantMutation.mutate({ row, col });
-    } else if (selectedTool === "harvest" && plot.state === "mature") {
+    } else if (plot.state === "mature") {
       harvestMutation.mutate({ row, col });
+    } else {
+      // For seedling and growing states, show info about when it will be ready
+      const daysPlanted = plot.plantedAt ? Math.floor((Date.now() - new Date(plot.plantedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+      const daysRemaining = Math.max(0, 6 - daysPlanted);
+      toast({
+        title: "Pumpkin Growing 🌱",
+        description: `This pumpkin will be ready to harvest in ${daysRemaining} days`,
+      });
     }
   };
 
@@ -267,52 +272,40 @@ export default function Game() {
       <div className="container mx-auto px-4 py-6 relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           
-          {/* Bolt Sidebar */}
+          {/* Game Info Sidebar */}
           <div className="xl:col-span-1 order-2 xl:order-1">
             <Card className="bg-white/90 backdrop-blur-sm border-4 border-amber-800/30">
               <CardContent className="p-6">
                 <h2 className="font-bold text-2xl text-dark-brown mb-6 flex items-center gap-2">
-                  <Bolt className="text-golden" />
-                  Farmer's Bolt
+                  <TrendingUp className="text-golden" />
+                  Farm Guide
                 </h2>
 
-                <div className="space-y-4 mb-8">
-                  <div 
-                    className={`bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-4 border-2 border-green-600 shadow-lg cursor-pointer hover:scale-105 transition-all duration-200 ${
-                      selectedTool === "plant" ? "ring-4 ring-golden/50" : ""
-                    }`}
-                    onClick={() => setSelectedTool("plant")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Sprout className="text-white text-2xl" />
-                      <div>
-                        <h3 className="font-semibold text-white">Plant Seeds</h3>
-                        <p className="text-green-100 text-sm">Click empty plots to plant</p>
-                      </div>
+                <div className="bg-cream/80 rounded-xl p-4 border-2 border-golden/30 mb-6">
+                  <h3 className="font-semibold text-dark-brown mb-3">How to Farm</h3>
+                  <div className="space-y-2 text-sm text-dark-brown">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🌱</span>
+                      <span>Click empty plots to plant seeds</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🎃</span>
+                      <span>Click mature pumpkins to harvest</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">💰</span>
+                      <span>Sell pumpkins to buy more seeds</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📏</span>
+                      <span>Expand your field for more space</span>
                     </div>
                   </div>
-
-                  <div 
-                    className={`bg-gradient-to-r from-orange-500 to-red-600 rounded-xl p-4 border-2 border-orange-500 shadow-lg cursor-pointer hover:scale-105 transition-all duration-200 ${
-                      selectedTool === "harvest" ? "ring-4 ring-golden/50" : ""
-                    }`}
-                    onClick={() => setSelectedTool("harvest")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="text-white text-2xl">🖐️</div>
-                      <div>
-                        <h3 className="font-semibold text-white">Harvest</h3>
-                        <p className="text-orange-100 text-sm">Collect mature pumpkins</p>
-                      </div>
-                    </div>
-                  </div>
-
-
                 </div>
 
                 <div className="bg-cream/80 rounded-xl p-4 border-2 border-golden/30">
                   <h3 className="font-semibold text-dark-brown mb-3 flex items-center gap-2">
-                    <TrendingUp className="text-golden" />
+                    <Clock className="text-golden" />
                     Growth Stages
                   </h3>
                   <div className="space-y-2">
