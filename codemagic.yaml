@@ -31,7 +31,7 @@ workflows:
           npm ci
       - name: Type check
         script: |
-          npm run check
+          npx tsc --noEmit
       - name: Build application
         script: |
           npm run build
