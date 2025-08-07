@@ -44,13 +44,13 @@ workflows:
         script: |
           # Build web app for mobile
           echo "Building frontend for mobile..."
-          # Build only the frontend, not the server - need to specify root dir
-          cd client && npx --yes vite@^5.4.19 build --outDir ../dist/public
+          # Build from root with proper config
+          npx --yes vite@^5.4.19 build --emptyOutDir
           echo "Verifying build output..."
           ls -la dist/public/
-          echo "Setting up Capacitor configuration..."
-          # Remove any existing configs and use our JSON config
-          rm -f capacitor.config.ts capacitor.config.js
+          echo "Initializing Capacitor..."
+          # Initialize Capacitor properly
+          npx --yes @capacitor/cli@latest init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
           echo "Adding iOS platform..."
           npx --yes @capacitor/cli@latest add ios
           echo "Syncing with Capacitor..."

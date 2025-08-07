@@ -1,0 +1,43 @@
+Build failed :|
+Step 5 script `Build application` exited with status code 1
+vite v5.4.19 building for production...
+(!) outDir /Users/builder/clone/dist/public is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+transforming...
+node:internal/process/promises:391
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+[Failed to load PostCSS config: Failed to load PostCSS config (searchPath: /Users/builder/clone/client): [Error] Loading PostCSS Plugin failed: Cannot find module 'autoprefixer'
+Require stack:
+- /Users/builder/clone/postcss.config.js
+
+(@/Users/builder/clone/postcss.config.js)
+Error: Loading PostCSS Plugin failed: Cannot find module 'autoprefixer'
+Require stack:
+- /Users/builder/clone/postcss.config.js
+
+(@/Users/builder/clone/postcss.config.js)
+    at load (file:///Users/builder/.npm/_npx/c3b6ccba9a8bda1a/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33632:11)
+    at file:///Users/builder/.npm/_npx/c3b6ccba9a8bda1a/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33657:16
+    at Array.map (<anonymous>)
+    at plugins (file:///Users/builder/.npm/_npx/c3b6ccba9a8bda1a/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33656:8)
+    at processResult (file:///Users/builder/.npm/_npx/c3b6ccba9a8bda1a/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33726:14)
+    at file:///Users/builder/.npm/_npx/c3b6ccba9a8bda1a/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:33856:14]
+
+Node.js v20.19.0
+Verifying build output...
+ls: dist/public/: No such file or directory
+Setting up Capacitor configuration...
+Adding iOS platform...
+[error] The Capacitor CLI needs to run at the root of an npm package or in a valid NX monorepo.
+        Make sure you have a package.json or project.json file in the directory where you run the Capacitor CLI.
+        More info: https://docs.npmjs.com/cli/init
+        Missing appId for new platform.
+        Please add it in capacitor.config.json or run npx cap init.
+Syncing with Capacitor...
+[error] ios platform has not been added yet.
+        See the docs for adding the ios platform: https://capacitorjs.com/docs/ios#adding-the-ios-platform
+
+Build failed :|
