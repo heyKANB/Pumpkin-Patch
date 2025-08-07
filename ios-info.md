@@ -7,6 +7,8 @@
 - **Apple ID**: Kathryn.new@hotmail.com
 - **Integration Key**: Apple Connect App Mgr
 - **Provisioning Profile**: PumpkinPatch
+- **Key ID**: 7629KQWD3Z
+- **Issuer ID**: 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
 
 ## Build Configuration
 The CI/CD pipeline will:
