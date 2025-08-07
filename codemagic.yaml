@@ -78,12 +78,16 @@ workflows:
           echo "Syncing with Capacitor..."
           npx --yes @capacitor/cli@latest sync ios
           echo "Configuring iOS project for automatic signing..."
-          # Configure automatic code signing to use the Apple Connect App Mgr integration
+          # Configure automatic code signing and set proper team from environment
           sed -i '' 's/CODE_SIGN_STYLE = Manual;/CODE_SIGN_STYLE = Automatic;/g' ios/App/App.xcodeproj/project.pbxproj
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = ".*";/PRODUCT_BUNDLE_IDENTIFIER = "com.huntergames.pumpkinpatch";/g' ios/App/App.xcodeproj/project.pbxproj
-          # Remove manual provisioning profile settings for automatic signing
-          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = ".*";//g' ios/App/App.xcodeproj/project.pbxproj
-          sed -i '' 's/"PROVISIONING_PROFILE_SPECIFIER\[sdk=iphoneos\*\]" = ".*";//g' ios/App/App.xcodeproj/project.pbxproj
+          # Set development team for automatic signing
+          if [ ! -z "$APP_STORE_CONNECT_ISSUER_ID" ]; then
+            sed -i '' "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = \"$APP_STORE_CONNECT_ISSUER_ID\";/g" ios/App/App.xcodeproj/project.pbxproj
+          fi
+          # Remove manual provisioning profile settings
+          sed -i '' '/PROVISIONING_PROFILE_SPECIFIER/d' ios/App/App.xcodeproj/project.pbxproj
+          echo "iOS project configured for automatic signing"
       - name: Build iOS app
         script: |
           echo "Creating export options..."
@@ -107,7 +111,8 @@ workflows:
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
             --scheme "App" \
-            --export-options-plist "export_options.plist"
+            --export-options-plist "export_options.plist" \
+            --archive-flags="CODE_SIGN_STYLE=Automatic"
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
