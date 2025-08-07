@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a grid-based farm field. The game features real-time growth mechanics where pumpkins take 6 days to mature, creating an engaging progression system.
+This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a dynamic grid-based farm field. The game features real-time growth mechanics where pumpkins take 6 days to mature, and progressive field expansion from 3x3 up to 10x10 with incrementally increasing costs, creating an engaging progression system with autumn/October theming.
 
 # User Preferences
 
@@ -31,15 +31,17 @@ Preferred communication style: Simple, everyday language.
 - **Connection**: Neon Database serverless PostgreSQL for production deployments
 
 ## Database Schema Design
-- **Players Table**: Stores user progress (coins, seeds, pumpkins, day progression)
+- **Players Table**: Stores user progress (coins, seeds, pumpkins, day progression, field size)
 - **Plots Table**: Manages individual farm plots with state tracking (empty, seedling, growing, mature)
 - **Relationships**: Plot ownership linked to players through foreign keys
 - **Timestamps**: Automatic tracking of planting time and last update for growth calculations
+- **Field Expansion**: Dynamic field sizing from 3x3 to 10x10 with exponential cost scaling
 
 ## Game Logic Architecture
 - **Growth System**: Time-based progression where pumpkins mature over 6 days
-- **Resource Management**: Coin-based economy for buying seeds and selling pumpkins
-- **Field Management**: 6x8 grid system for plot organization and management
+- **Resource Management**: Coin-based economy for buying seeds, selling pumpkins, and field expansion
+- **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with increasing costs
+- **Expansion Economy**: Exponential cost scaling (50, 100, 200, 400... coins) for field upgrades
 - **State Validation**: Zod schemas for runtime type checking and API request validation
 
 ## Development Tools

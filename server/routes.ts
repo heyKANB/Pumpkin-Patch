@@ -6,10 +6,12 @@ import {
   harvestPlotSchema, 
   buyItemSchema, 
   sellItemSchema,
+  expandFieldSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
-  type SellItemRequest
+  type SellItemRequest,
+  type ExpandFieldRequest
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -191,6 +193,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         player: updatedPlayer,
         message: `Sold ${quantity} ${item} for ${price} coins!`
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Expand field
+  app.post("/api/expand", async (req, res) => {
+    try {
+      const { playerId } = expandFieldSchema.parse(req.body);
+      
+      const result = await storage.expandPlayerField(playerId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.message, cost: result.cost });
+      }
+
+      const updatedPlayer = await storage.getPlayer(playerId);
+      const updatedPlots = await storage.getPlayerPlots(playerId);
+
+      res.json({ 
+        player: updatedPlayer, 
+        plots: updatedPlots,
+        message: result.message
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });

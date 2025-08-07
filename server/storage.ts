@@ -16,6 +16,7 @@ export interface IStorage {
   // Game operations
   initializePlayerField(playerId: string): Promise<void>;
   updatePumpkinGrowth(): Promise<void>;
+  expandPlayerField(playerId: string): Promise<{ success: boolean; message: string; cost?: number }>;
 }
 
 export class MemStorage implements IStorage {
@@ -37,6 +38,7 @@ export class MemStorage implements IStorage {
       seeds: 25,
       pumpkins: 8,
       day: 1,
+      fieldSize: 3,
       lastUpdated: new Date(),
     };
     this.players.set("default", defaultPlayer);
@@ -104,9 +106,12 @@ export class MemStorage implements IStorage {
   }
 
   async initializePlayerField(playerId: string): Promise<void> {
-    // Create 8x6 grid of empty plots
-    for (let row = 0; row < 6; row++) {
-      for (let col = 0; col < 8; col++) {
+    const player = this.players.get(playerId);
+    const fieldSize = player?.fieldSize || 3;
+    
+    // Create field based on player's current field size
+    for (let row = 0; row < fieldSize; row++) {
+      for (let col = 0; col < fieldSize; col++) {
         const existingPlot = await this.getPlot(playerId, row, col);
         if (!existingPlot) {
           await this.createPlot({
@@ -121,41 +126,69 @@ export class MemStorage implements IStorage {
       }
     }
 
-    // Add some initial demo plots for the default player
-    if (playerId === "default") {
-      await this.updatePlot(playerId, 0, 2, { 
+    // Add some initial demo plots for the default player (only if field is 3x3)
+    if (playerId === "default" && fieldSize === 3) {
+      await this.updatePlot(playerId, 0, 1, { 
         state: "seedling", 
         plantedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
       });
-      await this.updatePlot(playerId, 0, 3, { 
+      await this.updatePlot(playerId, 1, 0, { 
         state: "growing", 
         plantedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000) // 4 days ago
       });
-      await this.updatePlot(playerId, 0, 4, { 
+      await this.updatePlot(playerId, 2, 2, { 
         state: "mature", 
         plantedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
       });
-      await this.updatePlot(playerId, 0, 7, { 
-        state: "mature", 
-        plantedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) // 8 days ago
-      });
-      await this.updatePlot(playerId, 1, 0, { 
-        state: "seedling", 
-        plantedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-      });
-      await this.updatePlot(playerId, 1, 2, { 
-        state: "growing", 
-        plantedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
-      });
-      await this.updatePlot(playerId, 1, 5, { 
-        state: "seedling", 
-        plantedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
-      });
-      await this.updatePlot(playerId, 1, 6, { 
-        state: "mature", 
-        plantedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000) // 9 days ago
-      });
     }
+  }
+
+  async expandPlayerField(playerId: string): Promise<{ success: boolean; message: string; cost?: number }> {
+    const player = this.players.get(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    if (player.fieldSize >= 10) {
+      return { success: false, message: "Field is already at maximum size (10x10)" };
+    }
+
+    // Calculate expansion cost: 50 coins for 4x4, 100 for 5x5, 200 for 6x6, etc.
+    const newSize = player.fieldSize + 1;
+    const cost = Math.pow(2, newSize - 4) * 50; // Exponentially increasing cost
+
+    if (player.coins < cost) {
+      return { success: false, message: `Not enough coins. Expansion to ${newSize}x${newSize} costs ${cost} coins`, cost };
+    }
+
+    // Update player
+    await this.updatePlayer(playerId, {
+      coins: player.coins - cost,
+      fieldSize: newSize,
+    });
+
+    // Add new plots for the expanded area
+    for (let row = 0; row < newSize; row++) {
+      for (let col = 0; col < newSize; col++) {
+        const existingPlot = await this.getPlot(playerId, row, col);
+        if (!existingPlot) {
+          await this.createPlot({
+            playerId,
+            row,
+            col,
+            state: "empty",
+            plantedAt: null,
+            lastWatered: null,
+          });
+        }
+      }
+    }
+
+    return { 
+      success: true, 
+      message: `Field expanded to ${newSize}x${newSize} for ${cost} coins!`,
+      cost 
+    };
   }
 
   async updatePumpkinGrowth(): Promise<void> {

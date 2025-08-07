@@ -9,6 +9,7 @@ export const players = pgTable("players", {
   seeds: integer("seeds").notNull().default(25),
   pumpkins: integer("pumpkins").notNull().default(8),
   day: integer("day").notNull().default(1),
+  fieldSize: integer("field_size").notNull().default(3),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
 });
 
@@ -42,14 +43,14 @@ export type Plot = typeof plots.$inferSelect;
 // Game action schemas
 export const plantSeedSchema = z.object({
   playerId: z.string(),
-  row: z.number().min(0).max(5),
-  col: z.number().min(0).max(7),
+  row: z.number().min(0).max(9),
+  col: z.number().min(0).max(9),
 });
 
 export const harvestPlotSchema = z.object({
   playerId: z.string(),
-  row: z.number().min(0).max(5),
-  col: z.number().min(0).max(7),
+  row: z.number().min(0).max(9),
+  col: z.number().min(0).max(9),
 });
 
 export const buyItemSchema = z.object({
@@ -64,7 +65,12 @@ export const sellItemSchema = z.object({
   quantity: z.number().min(1),
 });
 
+export const expandFieldSchema = z.object({
+  playerId: z.string(),
+});
+
 export type PlantSeedRequest = z.infer<typeof plantSeedSchema>;
 export type HarvestPlotRequest = z.infer<typeof harvestPlotSchema>;
 export type BuyItemRequest = z.infer<typeof buyItemSchema>;
 export type SellItemRequest = z.infer<typeof sellItemSchema>;
+export type ExpandFieldRequest = z.infer<typeof expandFieldSchema>;

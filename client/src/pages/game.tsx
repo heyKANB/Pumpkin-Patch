@@ -126,8 +126,34 @@ export default function Game() {
     },
   });
 
+  const expandMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/expand", {
+        playerId: PLAYER_ID,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+      toast({
+        title: "Field Expanded! 🎯",
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to expand field",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePlotClick = (row: number, col: number) => {
-    if (!plots) return;
+    if (!plots || !player) return;
+    
+    // Check if the plot is within the current field size
+    if (row >= player.fieldSize || col >= player.fieldSize) return;
     
     const plot = plots.find(p => p.row === row && p.col === col);
     if (!plot) return;
@@ -163,6 +189,15 @@ export default function Game() {
 
   const activePlots = plots?.filter(p => p.state !== "empty").length || 0;
   const readyToHarvest = plots?.filter(p => p.state === "mature").length || 0;
+  
+  // Calculate expansion cost
+  const getExpansionCost = (currentSize: number) => {
+    if (currentSize >= 10) return null;
+    const newSize = currentSize + 1;
+    return Math.pow(2, newSize - 4) * 50;
+  };
+  
+  const expansionCost = player ? getExpansionCost(player.fieldSize) : null;
 
   if (playerLoading || plotsLoading) {
     return (
@@ -322,14 +357,20 @@ export default function Game() {
                     Your Pumpkin Patch
                   </h2>
                   <div className="bg-gradient-to-r from-golden to-orange-500 rounded-xl px-4 py-2 border-2 border-golden shadow-lg">
-                    <p className="text-white font-semibold">Field Size: 8×6</p>
+                    <p className="text-white font-semibold">Field Size: {player?.fieldSize || 3}×{player?.fieldSize || 3}</p>
                   </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-amber-800/20 to-amber-900/20 rounded-xl p-4 border-2 border-amber-800/30">
-                  <div className="grid grid-cols-8 gap-2 max-w-4xl mx-auto">
-                    {Array.from({ length: 6 }, (_, row) =>
-                      Array.from({ length: 8 }, (_, col) => {
+                  <div 
+                    className={`grid gap-2 max-w-4xl mx-auto`}
+                    style={{ 
+                      gridTemplateColumns: `repeat(${player?.fieldSize || 3}, minmax(0, 1fr))`,
+                      maxWidth: `${Math.min(600, (player?.fieldSize || 3) * 60)}px`
+                    }}
+                  >
+                    {Array.from({ length: player?.fieldSize || 3 }, (_, row) =>
+                      Array.from({ length: player?.fieldSize || 3 }, (_, col) => {
                         const plot = plots?.find(p => p.row === row && p.col === col);
                         const emoji = plot ? getPlotEmoji(plot.state) : null;
                         const styles = plot ? getPlotStyles(plot.state) : getPlotStyles("empty");
@@ -400,11 +441,12 @@ export default function Game() {
                   </Button>
                   
                   <Button
-                    className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
-                    disabled
+                    className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
+                    onClick={() => expandMutation.mutate()}
+                    disabled={expandMutation.isPending || !expansionCost || (player?.coins || 0) < expansionCost}
                   >
                     <Expand className="mr-2 h-4 w-4" />
-                    Expand Field
+                    {expansionCost ? `Expand Field (${expansionCost} coins)` : "Max Size Reached"}
                   </Button>
                 </div>
                 
