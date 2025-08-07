@@ -28,11 +28,12 @@ export default function Game() {
 
   // Mutations
   const plantMutation = useMutation({
-    mutationFn: async ({ row, col }: { row: number; col: number }) => {
+    mutationFn: async ({ row, col, cropType = "pumpkin" }: { row: number; col: number; cropType?: string }) => {
       const response = await apiRequest("POST", "/api/plant", {
         playerId: PLAYER_ID,
         row,
         col,
+        cropType,
       });
       return response.json();
     },
@@ -186,7 +187,9 @@ export default function Game() {
 
     // Automatically determine action based on plot state
     if (plot.state === "empty") {
-      plantMutation.mutate({ row, col });
+      // Plant pumpkins by default, or apples if player has only apple seeds
+      const cropType = player.seeds > 0 ? "pumpkin" : (player.appleSeeds > 0 ? "apple" : "pumpkin");
+      plantMutation.mutate({ row, col, cropType });
     } else if (plot.state === "mature") {
       harvestMutation.mutate({ row, col });
     } else if ((plot.state === "seedling" || plot.state === "growing") && !plot.fertilized && player.fertilizer > 0) {
@@ -198,7 +201,8 @@ export default function Game() {
       const effectiveMinutes = plot.fertilized ? minutesPlanted * 2 : minutesPlanted;
       const minutesRemaining = Math.max(0, 60 - effectiveMinutes);
       
-      let statusMessage = `This pumpkin will be ready to harvest in ${minutesRemaining} minutes`;
+      const cropName = plot.cropType === "apple" ? "apple" : "pumpkin";
+      let statusMessage = `This ${cropName} will be ready to harvest in ${minutesRemaining} minutes`;
       if (plot.fertilized) {
         statusMessage += " (fertilized - growing 2x faster!)";
       } else if (player.fertilizer > 0) {
@@ -206,18 +210,27 @@ export default function Game() {
       }
       
       toast({
-        title: "Pumpkin Growing 🌱",
+        title: `${cropName.charAt(0).toUpperCase() + cropName.slice(1)} Growing 🌱`,
         description: statusMessage,
       });
     }
   };
 
-  const getPlotEmoji = (state: string) => {
-    switch (state) {
-      case "seedling": return "🌱";
-      case "growing": return "🌿";
-      case "mature": return "🎃";
-      default: return null;
+  const getPlotEmoji = (state: string, cropType?: string) => {
+    if (cropType === "apple") {
+      switch (state) {
+        case "seedling": return "🌱";
+        case "growing": return "🌳";
+        case "mature": return "🍎";
+        default: return null;
+      }
+    } else {
+      switch (state) {
+        case "seedling": return "🌱";
+        case "growing": return "🌿";
+        case "mature": return "🎃";
+        default: return null;
+      }
     }
   };
 
@@ -291,11 +304,35 @@ export default function Game() {
                 <div className="flex items-center gap-2">
                   <Sprout className="text-green-600 text-xl" />
                   <div>
-                    <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Seeds</p>
+                    <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Pumpkin Seeds</p>
                     <p className="text-lg font-bold text-cream">{player?.seeds || 0}</p>
                   </div>
                 </div>
               </div>
+
+              {player && (player.appleSeeds || 0) > 0 && (
+                <div className="bg-red-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-red-500/50">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl">🌳</div>
+                    <div>
+                      <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Apple Seeds</p>
+                      <p className="text-lg font-bold text-cream">{player.appleSeeds || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {player && (player.apples || 0) > 0 && (
+                <div className="bg-red-600/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-red-600/50">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl">🍎</div>
+                    <div>
+                      <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Apples</p>
+                      <p className="text-lg font-bold text-cream">{player.apples || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-orange-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-orange-500/50">
                 <div className="flex items-center gap-2">
@@ -359,11 +396,11 @@ export default function Game() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🎃</span>
-                      <span>Click mature pumpkins to harvest</span>
+                      <span>Click mature crops to harvest</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">💰</span>
-                      <span>Sell pumpkins to buy more seeds</span>
+                      <span>Sell crops to buy more seeds</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">📏</span>
@@ -425,7 +462,7 @@ export default function Game() {
                     {Array.from({ length: player?.fieldSize || 3 }, (_, row) =>
                       Array.from({ length: player?.fieldSize || 3 }, (_, col) => {
                         const plot = plots?.find(p => p.row === row && p.col === col);
-                        const emoji = plot ? getPlotEmoji(plot.state) : null;
+                        const emoji = plot ? getPlotEmoji(plot.state, plot.cropType) : null;
                         const styles = plot ? getPlotStyles(plot.state) : getPlotStyles("empty");
                         
                         return (

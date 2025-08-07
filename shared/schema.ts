@@ -8,6 +8,8 @@ export const players = pgTable("players", {
   coins: integer("coins").notNull().default(150),
   seeds: integer("seeds").notNull().default(25),
   pumpkins: integer("pumpkins").notNull().default(8),
+  appleSeeds: integer("apple_seeds").notNull().default(0),
+  apples: integer("apples").notNull().default(0),
   pies: integer("pies").notNull().default(0),
   fertilizer: integer("fertilizer").notNull().default(0),
   tools: integer("tools").notNull().default(0),
@@ -20,12 +22,16 @@ export const players = pgTable("players", {
 export const plotStates = ["empty", "seedling", "growing", "mature"] as const;
 export type PlotState = typeof plotStates[number];
 
+export const cropTypes = ["pumpkin", "apple"] as const;
+export type CropType = typeof cropTypes[number];
+
 export const plots = pgTable("plots", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   playerId: varchar("player_id").notNull(),
   row: integer("row").notNull(),
   col: integer("col").notNull(),
   state: text("state").$type<PlotState>().notNull().default("empty"),
+  cropType: text("crop_type").$type<CropType>().default("pumpkin"),
   plantedAt: timestamp("planted_at"),
   lastWatered: timestamp("last_watered"),
   fertilized: integer("fertilized").notNull().default(0), // 0 = not fertilized, 1 = fertilized
@@ -52,6 +58,7 @@ export const plantSeedSchema = z.object({
   playerId: z.string(),
   row: z.number().min(0).max(9),
   col: z.number().min(0).max(9),
+  cropType: z.enum(["pumpkin", "apple"]).default("pumpkin"),
 });
 
 export const harvestPlotSchema = z.object({
@@ -101,13 +108,13 @@ export const insertOvenSchema = createInsertSchema(ovens).omit({
 
 export const buyItemSchema = z.object({
   playerId: z.string(),
-  item: z.enum(["seeds", "fertilizer", "tools"]),
+  item: z.enum(["seeds", "apple-seeds", "fertilizer", "tools"]),
   quantity: z.number().min(1).max(100),
 });
 
 export const sellItemSchema = z.object({
   playerId: z.string(),
-  item: z.enum(["pumpkins", "seeds", "pies"]),
+  item: z.enum(["pumpkins", "apples", "seeds", "apple-seeds", "pies"]),
   quantity: z.number().min(1),
 });
 

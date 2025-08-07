@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a dynamic grid-based farm field. The game features real-time growth mechanics where pumpkins take 60 minutes to mature, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing pumpkins into valuable pies. Enhanced with fertilizer system for accelerated growth and autumn/October theming throughout.
+This is a web-based farming simulation game built with a full-stack architecture. Players can plant multiple crop types (pumpkins and apples), grow diverse crops, and manage resources like coins, seeds, and harvested produce on a dynamic grid-based farm field. The game features real-time growth mechanics where crops take 60 minutes to mature, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing pumpkins into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, and autumn/October theming throughout.
 
 # User Preferences
 
@@ -41,7 +41,7 @@ Preferred communication style: Simple, everyday language.
 ## Game Logic Architecture
 - **Growth System**: Time-based progression where pumpkins mature over 60 minutes (30 minutes with fertilizer boost)
 - **Processing System**: Kitchen with expandable oven slots for baking pumpkins into pies (30-minute bake time)
-- **Resource Management**: Multi-tier economy with seeds (10 coins), fertilizer (10 coins), pumpkins (25 coins), and pies (40 coins)
+- **Resource Management**: Multi-tier economy with pumpkin seeds (10 coins), apple seeds (5 coins), fertilizer (10 coins), pumpkins (25 coins), apples (15 coins), and pies (40 coins)
 - **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with exponential cost scaling
 - **Kitchen Management**: Oven slots starting at 1, expandable to 5 with progressive cost increases (100, 200, 400, 800 coins)
 - **Enhancement System**: Fertilizer application for 2x growth speed with visual indicators

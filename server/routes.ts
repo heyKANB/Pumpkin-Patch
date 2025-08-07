@@ -46,15 +46,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Plant a seed
   app.post("/api/plant", async (req, res) => {
     try {
-      const { playerId, row, col } = plantSeedSchema.parse(req.body);
+      const { playerId, row, col, cropType = "pumpkin" } = plantSeedSchema.parse(req.body);
       
       const player = await storage.getPlayer(playerId);
       if (!player) {
         return res.status(404).json({ message: "Player not found" });
       }
 
-      if (player.seeds <= 0) {
-        return res.status(400).json({ message: "Not enough seeds" });
+      // Check if player has the right type of seeds
+      const hasSeeds = cropType === "apple" ? 
+        (player.appleSeeds > 0) : 
+        (player.seeds > 0);
+      
+      if (!hasSeeds) {
+        return res.status(400).json({ 
+          message: `Not enough ${cropType} seeds` 
+        });
       }
 
       const plot = await storage.getPlot(playerId, row, col);
@@ -65,13 +72,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update plot to planted
       await storage.updatePlot(playerId, row, col, {
         state: "seedling",
+        cropType: cropType,
         plantedAt: new Date(),
       });
 
-      // Update player seeds
-      await storage.updatePlayer(playerId, {
-        seeds: player.seeds - 1,
-      });
+      // Deduct the appropriate seeds
+      const seedUpdate = cropType === "apple" ? 
+        { appleSeeds: player.appleSeeds - 1 } : 
+        { seeds: player.seeds - 1 };
+      
+      await storage.updatePlayer(playerId, seedUpdate);
 
       const updatedPlayer = await storage.getPlayer(playerId);
       const updatedPlots = await storage.getPlayerPlots(playerId);
@@ -79,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         player: updatedPlayer, 
         plots: updatedPlots,
-        message: "Seed planted successfully!"
+        message: `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} seed planted successfully!`
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -108,18 +118,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fertilized: 0,
       });
 
-      // Update player pumpkins
-      await storage.updatePlayer(playerId, {
-        pumpkins: player.pumpkins + 1,
-      });
+      // Update player with harvested crop
+      const cropUpdate = plot.cropType === "apple" ? 
+        { apples: player.apples + 1 } : 
+        { pumpkins: player.pumpkins + 1 };
+      
+      await storage.updatePlayer(playerId, cropUpdate);
 
       const updatedPlayer = await storage.getPlayer(playerId);
       const updatedPlots = await storage.getPlayerPlots(playerId);
 
+      const cropName = plot.cropType === "apple" ? "Apple" : "Pumpkin";
       res.json({ 
         player: updatedPlayer, 
         plots: updatedPlots,
-        message: "Pumpkin harvested!"
+        message: `${cropName} harvested!`
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -188,7 +201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Define pricing for different items
       if (item === "seeds") {
-        cost = quantity * 10; // 10 coins per seed
+        cost = quantity * 10; // 10 coins per pumpkin seed
+      } else if (item === "apple-seeds") {
+        cost = quantity * 5; // 5 coins per apple seed
+        itemName = "apple-seeds";
       } else if (item === "fertilizer") {
         cost = quantity * 10; // 10 coins per fertilizer
         itemName = "fertilizer";
@@ -208,6 +224,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update inventory based on item type
       if (item === "seeds") {
         updates.seeds = player.seeds + quantity;
+      } else if (item === "apple-seeds") {
+        updates.appleSeeds = player.appleSeeds + quantity;
       } else if (item === "fertilizer") {
         updates.fertilizer = player.fertilizer + quantity;
       } else if (item === "tools") {
@@ -242,9 +260,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (item === "pumpkins") {
         price = quantity * 25; // 25 coins per pumpkin
         hasEnough = player.pumpkins >= quantity;
+      } else if (item === "apples") {
+        price = quantity * 15; // 15 coins per apple
+        hasEnough = player.apples >= quantity;
       } else if (item === "seeds") {
         price = quantity * 8; // 8 coins per seed (sell for less than buy price)
         hasEnough = player.seeds >= quantity;
+      } else if (item === "apple-seeds") {
+        price = quantity * 4; // 4 coins per apple seed (sell for less than buy price)
+        hasEnough = player.appleSeeds >= quantity;
       } else if (item === "pies") {
         price = quantity * 40; // 40 coins per pie (premium price)
         hasEnough = player.pies >= quantity;
@@ -260,8 +284,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (item === "pumpkins") {
         updates.pumpkins = player.pumpkins - quantity;
+      } else if (item === "apples") {
+        updates.apples = player.apples - quantity;
       } else if (item === "seeds") {
         updates.seeds = player.seeds - quantity;
+      } else if (item === "apple-seeds") {
+        updates.appleSeeds = player.appleSeeds - quantity;
       } else if (item === "pies") {
         updates.pies = player.pies - quantity;
       }
