@@ -35,7 +35,7 @@ workflows:
           echo "Type checking skipped - handled during build process"
       - name: Build application
         script: |
-          npm run build
+          npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
