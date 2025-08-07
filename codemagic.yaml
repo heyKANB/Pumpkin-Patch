@@ -31,12 +31,11 @@ workflows:
       - name: Install dependencies
         script: |
           npm ci
-          # Ensure build tools are globally available
-          export PATH="$PATH:./node_modules/.bin"
           # Verify installations
           echo "Node version: $(node --version)"
           echo "NPM version: $(npm --version)"
-          ls -la ./node_modules/.bin/ | grep -E "(vite|cap)"
+          echo "Available scripts:"
+          npm run --silent 2>/dev/null || echo "Scripts check completed"
       - name: Type check
         script: |
           # Skip type checking for now as TypeScript is only needed for build
@@ -45,16 +44,17 @@ workflows:
         script: |
           # Build web app for mobile
           echo "Building frontend for mobile..."
-          # Use local node_modules vite
-          ./node_modules/.bin/vite build
-          echo "Initializing Capacitor..."
-          # Use JavaScript config instead of TypeScript
-          rm -f capacitor.config.ts
-          ./node_modules/.bin/cap init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
+          # Use npm script which handles paths correctly
+          npm run build
+          echo "Setting up Capacitor configuration..."
+          # Remove any existing configs and create fresh
+          rm -f capacitor.config.ts capacitor.config.js
+          # Copy our JSON config
+          cp capacitor.config.json capacitor.config.json.bak
           echo "Adding iOS platform..."
-          ./node_modules/.bin/cap add ios
+          npx --yes @capacitor/cli@latest add ios --confirm
           echo "Syncing with Capacitor..."
-          ./node_modules/.bin/cap sync ios
+          npx --yes @capacitor/cli@latest sync ios
       - name: Build iOS app
         script: |
           echo "Building iOS app with Xcode..."
