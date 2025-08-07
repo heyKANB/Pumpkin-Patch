@@ -261,6 +261,19 @@ export default function Game() {
     }
   };
 
+  const getTimeUntilMature = (plot: Plot) => {
+    if (!plot.plantedAt || plot.state === "empty" || plot.state === "mature") return null;
+    
+    const now = new Date().getTime();
+    const planted = new Date(plot.plantedAt).getTime();
+    const minutesElapsed = Math.floor((now - planted) / (1000 * 60));
+    const effectiveMinutes = plot.fertilized ? minutesElapsed * 2 : minutesElapsed;
+    const minutesRemaining = Math.max(0, 60 - effectiveMinutes);
+    
+    if (minutesRemaining === 0) return "Ready!";
+    return `${minutesRemaining}m`;
+  };
+
   const activePlots = plots?.filter(p => p.state !== "empty").length || 0;
   const readyToHarvest = plots?.filter(p => p.state === "mature").length || 0;
   
@@ -431,26 +444,7 @@ export default function Game() {
                   </div>
                 </div>
 
-                <div className="bg-cream/80 rounded-xl p-4 border-2 border-golden/30">
-                  <h3 className="font-semibold text-dark-brown mb-3 flex items-center gap-2">
-                    <Clock className="text-golden" />
-                    Growth Stages
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-lg">🌱</span>
-                      <span className="text-dark-brown">Sprout (0-29 minutes)</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-lg">🌿</span>
-                      <span className="text-dark-brown">Growing (30-59 minutes)</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-lg">🎃</span>
-                      <span className="text-dark-brown">Mature (60+ minutes)</span>
-                    </div>
-                  </div>
-                </div>
+
               </CardContent>
             </Card>
           </div>
@@ -482,11 +476,12 @@ export default function Game() {
                         const plot = plots?.find(p => p.row === row && p.col === col);
                         const emoji = plot ? getPlotEmoji(plot.state, plot.cropType) : null;
                         const styles = plot ? getPlotStyles(plot.state) : getPlotStyles("empty");
+                        const timeRemaining = plot ? getTimeUntilMature(plot) : null;
                         
                         return (
                           <div
                             key={`${row}-${col}`}
-                            className={`aspect-square rounded-lg border-2 shadow-lg transition-all duration-200 flex items-center justify-center relative ${styles}`}
+                            className={`aspect-square rounded-lg border-2 shadow-lg transition-all duration-200 flex flex-col items-center justify-center relative ${styles}`}
                             onClick={() => handlePlotClick(row, col)}
                           >
                             {emoji ? (
@@ -494,6 +489,15 @@ export default function Game() {
                             ) : (
                               <Plus className="text-cream/50 text-lg hover:text-golden transition-colors" />
                             )}
+                            
+                            {/* Countdown Timer */}
+                            {timeRemaining && plot?.state !== "mature" && (
+                              <div className="absolute bottom-1 text-xs font-bold text-center bg-black/70 text-white px-1 rounded backdrop-blur-sm">
+                                {timeRemaining}
+                              </div>
+                            )}
+                            
+                            {/* Fertilizer indicator */}
                             {plot?.fertilized && plot.state !== "empty" && (
                               <div className="absolute top-1 right-1 bg-yellow-400 text-yellow-800 rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">
                                 ⚡
