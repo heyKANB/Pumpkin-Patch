@@ -44,15 +44,15 @@ workflows:
         script: |
           # Build web app for mobile
           echo "Building frontend for mobile..."
-          # Use npm script which handles paths correctly
-          npm run build
+          # Build only the frontend, not the server - need to specify root dir
+          cd client && npx --yes vite@^5.4.19 build --outDir ../dist/public
+          echo "Verifying build output..."
+          ls -la dist/public/
           echo "Setting up Capacitor configuration..."
-          # Remove any existing configs and create fresh
+          # Remove any existing configs and use our JSON config
           rm -f capacitor.config.ts capacitor.config.js
-          # Copy our JSON config
-          cp capacitor.config.json capacitor.config.json.bak
           echo "Adding iOS platform..."
-          npx --yes @capacitor/cli@latest add ios --confirm
+          npx --yes @capacitor/cli@latest add ios
           echo "Syncing with Capacitor..."
           npx --yes @capacitor/cli@latest sync ios
       - name: Build iOS app
