@@ -81,8 +81,14 @@ workflows:
           # Update iOS project for manual signing with the PumpkinPatch provisioning profile
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' ios/App/App.xcodeproj/project.pbxproj
           sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = ".*";/PRODUCT_BUNDLE_IDENTIFIER = "com.huntergames.pumpkinpatch";/g' ios/App/App.xcodeproj/project.pbxproj
+          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = "$CM_APPLE_TEAM_ID";/g' ios/App/App.xcodeproj/project.pbxproj
           sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = ".*";/PROVISIONING_PROFILE_SPECIFIER = "PumpkinPatch";/g' ios/App/App.xcodeproj/project.pbxproj
           sed -i '' 's/"PROVISIONING_PROFILE_SPECIFIER\[sdk=iphoneos\*\]" = ".*";/"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "PumpkinPatch";/g' ios/App/App.xcodeproj/project.pbxproj
+          # Add provisioning profile specifier if it doesn't exist
+          if ! grep -q "PROVISIONING_PROFILE_SPECIFIER" ios/App/App.xcodeproj/project.pbxproj; then
+            sed -i '' '/PRODUCT_BUNDLE_IDENTIFIER/a\
+                                PROVISIONING_PROFILE_SPECIFIER = "PumpkinPatch";' ios/App/App.xcodeproj/project.pbxproj
+          fi
       - name: Build iOS app
         script: |
           echo "Creating export options..."
@@ -106,7 +112,8 @@ workflows:
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
             --scheme "App" \
-            --export-options-plist "export_options.plist"
+            --export-options-plist "export_options.plist" \
+            --archive-flags="DEVELOPMENT_TEAM=$CM_APPLE_TEAM_ID PROVISIONING_PROFILE_SPECIFIER=PumpkinPatch"
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
