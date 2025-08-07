@@ -79,10 +79,28 @@ workflows:
           npx --yes @capacitor/cli@latest sync ios
       - name: Build iOS app
         script: |
+          echo "Creating export options..."
+          cat > export_options.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>uploadBitcode</key>
+              <false/>
+              <key>uploadSymbols</key>
+              <true/>
+              <key>compileBitcode</key>
+              <false/>
+          </dict>
+          </plist>
+          EOF
           echo "Building iOS app with Xcode..."
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
-            --scheme "App"
+            --scheme "App" \
+            --export-options-plist "export_options.plist"
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
