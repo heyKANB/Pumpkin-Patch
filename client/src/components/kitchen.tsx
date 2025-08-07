@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Clock, ChefHat, Plus, Coins } from 'lucide-react';
 import type { Player, Oven } from '@shared/schema';
+import { useState } from 'react';
 
 interface KitchenProps {
   player: Player;
@@ -15,6 +16,7 @@ interface KitchenProps {
 export function Kitchen({ player }: KitchenProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [selectedPieType, setSelectedPieType] = useState<"pumpkin" | "apple">("pumpkin");
 
   const { data: ovens = [], isLoading } = useQuery<Oven[]>({
     queryKey: ['/api/player/default/ovens'],
@@ -22,7 +24,7 @@ export function Kitchen({ player }: KitchenProps) {
 
   const bakeMutation = useMutation({
     mutationFn: async (slotNumber: number) => {
-      const response = await apiRequest('POST', '/api/bake', { playerId: 'default', slotNumber });
+      const response = await apiRequest('POST', '/api/bake', { playerId: 'default', slotNumber, pieType: selectedPieType });
       return response.json();
     },
     onSuccess: (data: any) => {
@@ -65,11 +67,11 @@ export function Kitchen({ player }: KitchenProps) {
     },
   });
 
-  const getOvenEmoji = (state: string) => {
+  const getOvenEmoji = (state: string, pieType?: string) => {
     switch (state) {
       case "empty": return "🔥";
       case "baking": return "👨‍🍳";
-      case "ready": return "🥧";
+      case "ready": return pieType === "apple" ? "🍎🥧" : "🥧";
       default: return "🔥";
     }
   };
@@ -90,7 +92,7 @@ export function Kitchen({ player }: KitchenProps) {
   const getTimeRemaining = (oven: Oven) => {
     if (oven.state !== "baking" || !oven.startedAt) return null;
     
-    const bakingTime = 30; // 30 minutes
+    const bakingTime = oven.pieType === "apple" ? 15 : 30; // Apple pies 15min, pumpkin pies 30min
     const startedAt = new Date(oven.startedAt);
     const now = new Date();
     const minutesElapsed = Math.floor((now.getTime() - startedAt.getTime()) / (1000 * 60));
@@ -102,8 +104,15 @@ export function Kitchen({ player }: KitchenProps) {
 
   const handleOvenClick = (oven: Oven) => {
     if (oven.state === "empty") {
-      if (player.pumpkins < 1) {
-        toast({ title: "Not enough pumpkins", description: "You need at least 1 pumpkin to bake a pie", variant: "destructive" });
+      const ingredient = selectedPieType === "apple" ? "apples" : "pumpkins";
+      const ingredientCount = selectedPieType === "apple" ? player.apples : player.pumpkins;
+      
+      if (ingredientCount < 1) {
+        toast({ 
+          title: `Not enough ${ingredient}`, 
+          description: `You need at least 1 ${ingredient.slice(0, -1)} to bake a pie`, 
+          variant: "destructive" 
+        });
         return;
       }
       bakeMutation.mutate(oven.slotNumber);
@@ -143,18 +152,64 @@ export function Kitchen({ player }: KitchenProps) {
           Kitchen ({player.kitchenSlots}/5 slots)
         </CardTitle>
         <CardDescription className="text-cream/80">
-          Turn your pumpkins into delicious pies! Each pie takes 30 minutes to bake.
+          Turn your crops into delicious pies! Pumpkin pies take 30 minutes, apple pies take 15 minutes.
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Pie Type Selection */}
+        <div className="bg-gradient-to-r from-amber-100 to-amber-200 rounded-xl p-4 border-2 border-amber-800/50">
+          <h3 className="font-bold text-dark-brown mb-3 flex items-center gap-2">
+            <span className="text-xl">👨‍🍳</span>
+            Select Pie Type to Bake
+          </h3>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setSelectedPieType("pumpkin")}
+              className={`flex items-center gap-2 ${
+                selectedPieType === "pumpkin" 
+                  ? "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-800" 
+                  : "bg-white hover:bg-orange-50 text-dark-brown border-2 border-orange-300"
+              }`}
+              disabled={player.pumpkins === 0}
+            >
+              <span className="text-lg">🥧</span>
+              <div className="text-left">
+                <div className="font-semibold">Pumpkin Pies</div>
+                <div className="text-xs opacity-80">30min bake • 40 coins • Have: {player.pumpkins}</div>
+              </div>
+            </Button>
+            
+            <Button
+              onClick={() => setSelectedPieType("apple")}
+              className={`flex items-center gap-2 ${
+                selectedPieType === "apple" 
+                  ? "bg-red-600 hover:bg-red-700 text-white border-2 border-red-800" 
+                  : "bg-white hover:bg-red-50 text-dark-brown border-2 border-red-300"
+              }`}
+              disabled={player.apples === 0}
+            >
+              <span className="text-lg">🍎🥧</span>
+              <div className="text-left">
+                <div className="font-semibold">Apple Pies</div>
+                <div className="text-xs opacity-80">15min bake • 25 coins • Have: {player.apples}</div>
+              </div>
+            </Button>
+          </div>
+          <div className="mt-3 text-sm text-dark-brown/70">
+            Selected: <span className="font-semibold text-dark-brown">
+              {selectedPieType === "apple" ? "🍎🥧 Apple Pie" : "🥧 Pumpkin Pie"} 
+            </span> - Click empty ovens to start baking
+          </div>
+        </div>
+
         {/* Oven Slots Grid */}
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: player.kitchenSlots }, (_, index) => {
             const oven = ovens.find(o => o.slotNumber === index);
             if (!oven) return null;
             
-            const emoji = getOvenEmoji(oven.state);
+            const emoji = getOvenEmoji(oven.state, oven.pieType);
             const styles = getOvenStyles(oven.state);
             const timeRemaining = getTimeRemaining(oven);
             
@@ -185,12 +240,18 @@ export function Kitchen({ player }: KitchenProps) {
         {/* Kitchen Stats */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-3 border border-golden/30">
-            <div className="font-semibold text-dark-brown dark:text-amber-100">Pumpkins Available</div>
-            <div className="text-lg font-bold text-orange-600 dark:text-orange-400">{player.pumpkins}</div>
+            <div className="font-semibold text-dark-brown dark:text-amber-100">Ingredients</div>
+            <div className="text-sm text-orange-600 dark:text-orange-400">
+              🎃 {player.pumpkins} pumpkins<br/>
+              🍎 {player.apples} apples
+            </div>
           </div>
           <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-3 border border-golden/30">
             <div className="font-semibold text-dark-brown dark:text-amber-100">Pies Made</div>
-            <div className="text-lg font-bold text-orange-600 dark:text-orange-400">{player.pies}</div>
+            <div className="text-sm text-orange-600 dark:text-orange-400">
+              🥧 {player.pies} pumpkin pies<br/>
+              🍎🥧 {player.applePies} apple pies
+            </div>
           </div>
         </div>
 
@@ -217,7 +278,7 @@ export function Kitchen({ player }: KitchenProps) {
         <div className="text-xs text-cream/60 space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-base">🔥</span>
-            <span>Click empty ovens to start baking (uses 1 pumpkin)</span>
+            <span>Select pie type above, then click empty ovens to start baking</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-base">🥧</span>
@@ -225,7 +286,7 @@ export function Kitchen({ player }: KitchenProps) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-base">💰</span>
-            <span>Sell pies in the marketplace for 40 coins each</span>
+            <span>Sell pumpkin pies (40 coins) or apple pies (25 coins) in marketplace</span>
           </div>
         </div>
       </CardContent>

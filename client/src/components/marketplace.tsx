@@ -137,6 +137,16 @@ export default function Marketplace({ player }: MarketplaceProps) {
       canSell: player.pies > 0,
     },
     {
+      id: "apple-pies",
+      name: "Apple Pies",
+      description: "Sweet baked apple pies",
+      sellPrice: 25,
+      icon: <span className="text-2xl">🍎🥧</span>,
+      playerQuantity: player.applePies,
+      canBuy: false,
+      canSell: player.applePies > 0,
+    },
+    {
       id: "fertilizer",
       name: "Fertilizer",
       description: "Speeds up crop growth",

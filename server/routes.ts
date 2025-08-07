@@ -272,6 +272,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (item === "pies") {
         price = quantity * 40; // 40 coins per pie (premium price)
         hasEnough = player.pies >= quantity;
+      } else if (item === "apple-pies") {
+        price = quantity * 25; // 25 coins per apple pie
+        hasEnough = player.applePies >= quantity;
       }
 
       if (!hasEnough) {
@@ -292,6 +295,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.appleSeeds = player.appleSeeds - quantity;
       } else if (item === "pies") {
         updates.pies = player.pies - quantity;
+      } else if (item === "apple-pies") {
+        updates.applePies = player.applePies - quantity;
       }
 
       await storage.updatePlayer(playerId, updates);
@@ -345,45 +350,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bake", async (req, res) => {
     try {
       const validatedData = startBakingSchema.parse(req.body);
-      const { playerId, slotNumber } = validatedData;
+      const { playerId, slotNumber, pieType } = validatedData;
 
-      const player = await storage.getPlayer(playerId);
-      if (!player) {
-        return res.status(404).json({ message: "Player not found" });
-      }
-
-      if (player.pumpkins < 1) {
-        return res.status(400).json({ message: "Not enough pumpkins to bake a pie" });
-      }
-
-      const oven = await storage.getOven(playerId, slotNumber);
-      if (!oven) {
-        return res.status(404).json({ message: "Oven slot not found" });
-      }
-
-      if (oven.state !== "empty") {
-        return res.status(400).json({ message: "Oven slot is not empty" });
-      }
-
-      // Start baking
-      const updatedPlayer = await storage.updatePlayer(playerId, {
-        pumpkins: player.pumpkins - 1,
-      });
-
-      const updatedOven = await storage.updateOven(playerId, slotNumber, {
-        state: "baking",
-        startedAt: new Date(),
-      });
-
+      const { player, oven } = await storage.startBaking(playerId, slotNumber, pieType);
+      
       await storage.updatePieBaking();
 
+      const pieTypeName = pieType === "apple" ? "apple pie" : "pumpkin pie";
       res.json({ 
-        player: updatedPlayer, 
-        oven: updatedOven,
-        message: "Started baking pumpkin pie!" 
+        player, 
+        oven,
+        message: `Started baking ${pieTypeName}!` 
       });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to start baking" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to start baking" });
     }
   });
 
@@ -393,37 +373,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = collectPieSchema.parse(req.body);
       const { playerId, slotNumber } = validatedData;
 
-      const player = await storage.getPlayer(playerId);
-      if (!player) {
-        return res.status(404).json({ message: "Player not found" });
-      }
-
       const oven = await storage.getOven(playerId, slotNumber);
-      if (!oven) {
-        return res.status(404).json({ message: "Oven slot not found" });
-      }
+      const pieTypeName = oven?.pieType === "apple" ? "apple pie" : "pumpkin pie";
 
-      if (oven.state !== "ready") {
-        return res.status(400).json({ message: "Pie is not ready to collect" });
-      }
-
-      // Collect pie
-      const updatedPlayer = await storage.updatePlayer(playerId, {
-        pies: player.pies + 1,
-      });
-
-      const updatedOven = await storage.updateOven(playerId, slotNumber, {
-        state: "empty",
-        startedAt: null,
-      });
+      const { player, oven: updatedOven } = await storage.collectPie(playerId, slotNumber);
 
       res.json({ 
-        player: updatedPlayer, 
+        player, 
         oven: updatedOven,
-        message: "Collected pumpkin pie!" 
+        message: `Collected ${pieTypeName}!` 
       });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to collect pie" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to collect pie" });
     }
   });
 

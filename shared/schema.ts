@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -11,6 +11,7 @@ export const players = pgTable("players", {
   appleSeeds: integer("apple_seeds").notNull().default(0),
   apples: integer("apples").notNull().default(0),
   pies: integer("pies").notNull().default(0),
+  applePies: integer("apple_pies").notNull().default(0),
   fertilizer: integer("fertilizer").notNull().default(0),
   tools: integer("tools").notNull().default(0),
   day: integer("day").notNull().default(1),
@@ -81,6 +82,7 @@ export const ovens = pgTable("ovens", {
   playerId: varchar("player_id").notNull(),
   slotNumber: integer("slot_number").notNull(),
   state: text("state").$type<OvenState>().notNull().default("empty"),
+  pieType: text("pie_type", { enum: ["pumpkin", "apple"] }),
   startedAt: timestamp("started_at"),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
 }, (table) => ({
@@ -90,6 +92,7 @@ export const ovens = pgTable("ovens", {
 export const startBakingSchema = z.object({
   playerId: z.string(),
   slotNumber: z.number().min(0).max(4),
+  pieType: z.enum(["pumpkin", "apple"]).default("pumpkin"),
 });
 
 export const collectPieSchema = z.object({
@@ -114,7 +117,7 @@ export const buyItemSchema = z.object({
 
 export const sellItemSchema = z.object({
   playerId: z.string(),
-  item: z.enum(["pumpkins", "apples", "seeds", "apple-seeds", "pies"]),
+  item: z.enum(["pumpkins", "apples", "seeds", "apple-seeds", "pies", "apple-pies"]),
   quantity: z.number().min(1),
 });
 

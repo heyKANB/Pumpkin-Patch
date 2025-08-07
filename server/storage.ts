@@ -255,6 +255,7 @@ export class MemStorage implements IStorage {
       playerId: insertOven.playerId,
       slotNumber: insertOven.slotNumber,
       state: (insertOven.state as OvenState) ?? "empty",
+      pieType: insertOven.pieType ?? null,
       startedAt: insertOven.startedAt ?? null,
       lastUpdated: new Date(),
     };
@@ -289,6 +290,7 @@ export class MemStorage implements IStorage {
           playerId,
           slotNumber: slot,
           state: "empty",
+          pieType: null,
           startedAt: null,
         });
       }
@@ -324,6 +326,7 @@ export class MemStorage implements IStorage {
       playerId,
       slotNumber: newSlots - 1,
       state: "empty",
+      pieType: null,
       startedAt: null,
     });
 
@@ -362,6 +365,72 @@ export class MemStorage implements IStorage {
     }
   }
 
+  async startBaking(playerId: string, slotNumber: number, pieType: "pumpkin" | "apple" = "pumpkin"): Promise<{ player: Player; oven: Oven }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      throw new Error("Player not found");
+    }
+
+    if (pieType === "apple" && player.apples === 0) {
+      throw new Error("No apples available");
+    } else if (pieType === "pumpkin" && player.pumpkins === 0) {
+      throw new Error("No pumpkins available");
+    }
+
+    const oven = await this.getOven(playerId, slotNumber);
+    if (!oven || oven.state !== "empty") {
+      throw new Error("Oven is not empty");
+    }
+
+    // Update player - remove ingredient
+    const updates: Partial<Player> = {};
+    if (pieType === "apple") {
+      updates.apples = player.apples - 1;
+    } else {
+      updates.pumpkins = player.pumpkins - 1;
+    }
+    const updatedPlayer = await this.updatePlayer(playerId, updates);
+
+    // Update oven
+    const updatedOven = await this.updateOven(playerId, slotNumber, {
+      state: "baking",
+      pieType: pieType,
+      startedAt: new Date(),
+    });
+
+    return { player: updatedPlayer!, oven: updatedOven! };
+  }
+
+  async collectPie(playerId: string, slotNumber: number): Promise<{ player: Player; oven: Oven }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      throw new Error("Player not found");
+    }
+
+    const oven = await this.getOven(playerId, slotNumber);
+    if (!oven || oven.state !== "ready") {
+      throw new Error("Oven is not ready");
+    }
+
+    // Update player - add pie
+    const updates: Partial<Player> = {};
+    if (oven.pieType === "apple") {
+      updates.applePies = player.applePies + 1;
+    } else {
+      updates.pies = player.pies + 1;
+    }
+    const updatedPlayer = await this.updatePlayer(playerId, updates);
+
+    // Update oven - reset to empty
+    const updatedOven = await this.updateOven(playerId, slotNumber, {
+      state: "empty",
+      pieType: null,
+      startedAt: null,
+    });
+
+    return { player: updatedPlayer!, oven: updatedOven! };
+  }
+
   async updatePieBaking(): Promise<void> {
     const now = new Date();
     
@@ -372,7 +441,10 @@ export class MemStorage implements IStorage {
 
       const minutesSinceStarted = Math.floor((now.getTime() - oven.startedAt.getTime()) / (1000 * 60));
       
-      if (minutesSinceStarted >= 30) { // 30 minutes baking time
+      // Determine baking time based on pie type: apple pies 15min, pumpkin pies 30min
+      const bakingTime = oven.pieType === "apple" ? 15 : 30;
+      
+      if (minutesSinceStarted >= bakingTime) {
         await this.updateOven(oven.playerId, oven.slotNumber, { 
           state: "ready" 
         });
