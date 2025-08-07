@@ -41,10 +41,3 @@ workflows:
     artifacts:
       - dist/**
       - build/**
-    publishing:
-      email:
-        recipients:
-          - $CM_EMAIL
-        notify:
-          success: true
-          failure: true
