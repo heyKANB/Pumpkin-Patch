@@ -6,8 +6,8 @@ workflows:
     environment:
       groups:
         - production
-      node: 20.9.0
-      npm: 10.1.0
+      node: 20.19.0
+      npm: 10.9.0
       vars:
         NODE_ENV: production
     cache:
@@ -35,7 +35,8 @@ workflows:
           echo "Type checking skipped - handled during build process"
       - name: Build application
         script: |
-          npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+          # Use locally installed vite from node_modules
+          ./node_modules/.bin/vite build && ./node_modules/.bin/esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
