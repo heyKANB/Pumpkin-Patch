@@ -5,7 +5,7 @@
 - **Bundle ID**: com.huntergames.pumpkinpatch
 - **App Name**: Pumpkin Patch
 - **Apple ID**: Kathryn.new@hotmail.com
-- **Provisioning Profile**: PumpkinPatch
+- **Integration Key**: Apple Connect App Mgr
 
 ## Build Configuration
 The CI/CD pipeline will:
@@ -17,4 +17,4 @@ The CI/CD pipeline will:
 6. Submit to TestFlight automatically
 
 ## Note
-The app ID (6749664824) is used in App Store Connect for app identification, while the Bundle ID (com.huntergames.pumpkinpatch) is used for code signing and app distribution with the PumpkinPatch provisioning profile.
+The app ID (6749664824) is used in App Store Connect for app identification, while the Bundle ID (com.huntergames.pumpkinpatch) is used for code signing and app distribution with the "Apple Connect App Mgr" integration key.
