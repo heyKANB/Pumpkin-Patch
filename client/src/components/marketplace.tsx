@@ -110,7 +110,7 @@ export default function Marketplace({ player }: MarketplaceProps) {
       id: "pumpkins",
       name: "Pumpkins",
       description: "Fresh harvested pumpkins",
-      sellPrice: 25,
+      sellPrice: 30,
       icon: <span className="text-2xl">🎃</span>,
       playerQuantity: player.pumpkins,
       canBuy: false,
