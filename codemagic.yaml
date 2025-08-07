@@ -29,14 +29,17 @@ workflows:
       - name: Install dependencies
         script: |
           npm ci
+          # Ensure build tools are globally available
+          export PATH="$PATH:./node_modules/.bin"
       - name: Type check
         script: |
           # Skip type checking for now as TypeScript is only needed for build
           echo "Type checking skipped - handled during build process"
       - name: Build application
         script: |
-          # Use npm script which handles paths correctly
-          npm run build
+          # Export path and run build
+          export PATH="$PATH:./node_modules/.bin"
+          vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
