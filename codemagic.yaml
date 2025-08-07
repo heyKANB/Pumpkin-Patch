@@ -9,16 +9,19 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.huntergames.pumpkinpatch
+        vars:
+          Bundle_ID: "com.huntergames.pumpkinpatch"
+          Apple_ID: "6749664824"
+          App_Store_Connect_Key_ID: "7629KQWD3Z"
+          XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+          XCODE_Scheme: "App"
+          Code_Sign_Identity: "Apple Distribution"
       groups:
         - production
       node: 20.19.0
       npm: 10.9.0
       vars:
         NODE_ENV: production
-        Bundle_ID: "com.huntergames.pumpkinpatch"
-        Apple_ID: "6749664824"
-        App_Store_Connect_Key_ID: "7629KQWD3Z"
-        XCODE_Scheme: "App"
     cache:
       cache_paths:
         - $CM_BUILD_DIR/node_modules
