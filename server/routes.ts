@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { 
   plantSeedSchema, 
   harvestPlotSchema, 
+  fertilizePlotSchema,
   buyItemSchema, 
   sellItemSchema,
   expandFieldSchema,
@@ -97,10 +98,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Plot is not ready for harvest" });
       }
 
-      // Update plot to empty
+      // Update plot to empty and reset fertilizer
       await storage.updatePlot(playerId, row, col, {
         state: "empty",
         plantedAt: null,
+        fertilized: 0,
       });
 
       // Update player pumpkins
@@ -115,6 +117,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         player: updatedPlayer, 
         plots: updatedPlots,
         message: "Pumpkin harvested!"
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Fertilize plot
+  app.post("/api/fertilize", async (req, res) => {
+    try {
+      const { playerId, row, col } = fertilizePlotSchema.parse(req.body);
+      
+      const plot = await storage.getPlot(playerId, row, col);
+      if (!plot) {
+        return res.status(404).json({ message: "Plot not found" });
+      }
+
+      if (plot.state === "empty" || plot.state === "mature") {
+        return res.status(400).json({ message: "Can only fertilize seedlings or growing plants" });
+      }
+
+      if (plot.fertilized) {
+        return res.status(400).json({ message: "This plot is already fertilized" });
+      }
+
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      if (player.fertilizer < 1) {
+        return res.status(400).json({ message: "Not enough fertilizer" });
+      }
+
+      // Apply fertilizer to the plot
+      await storage.updatePlot(playerId, row, col, { 
+        fertilized: 1
+      });
+
+      // Use one fertilizer from player inventory
+      await storage.updatePlayer(playerId, {
+        fertilizer: player.fertilizer - 1,
+      });
+
+      const updatedPlayer = await storage.getPlayer(playerId);
+      res.json({ 
+        player: updatedPlayer,
+        message: "Fertilizer applied! Growth speed doubled! ⚡"
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });

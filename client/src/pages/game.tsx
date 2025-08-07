@@ -75,6 +75,31 @@ export default function Game() {
     },
   });
 
+  const fertilizeMutation = useMutation({
+    mutationFn: async ({ row, col }: { row: number; col: number }) => {
+      const response = await apiRequest("POST", "/api/fertilize", {
+        playerId: PLAYER_ID,
+        row,
+        col,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+      toast({
+        title: "Fertilizer Applied! ⚡",
+        description: data.message || "Growth speed doubled!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to apply fertilizer",
+        variant: "destructive",
+      });
+    },
+  });
+
   const buyMutation = useMutation({
     mutationFn: async ({ item, quantity }: { item: "seeds"; quantity: number }) => {
       const response = await apiRequest("POST", "/api/buy", {
@@ -162,13 +187,25 @@ export default function Game() {
       plantMutation.mutate({ row, col });
     } else if (plot.state === "mature") {
       harvestMutation.mutate({ row, col });
+    } else if ((plot.state === "seedling" || plot.state === "growing") && !plot.fertilized && player.fertilizer > 0) {
+      // Apply fertilizer if available and plot isn't already fertilized
+      fertilizeMutation.mutate({ row, col });
     } else {
       // For seedling and growing states, show info about when it will be ready
       const minutesPlanted = plot.plantedAt ? Math.floor((Date.now() - new Date(plot.plantedAt).getTime()) / (1000 * 60)) : 0;
-      const minutesRemaining = Math.max(0, 60 - minutesPlanted);
+      const effectiveMinutes = plot.fertilized ? minutesPlanted * 2 : minutesPlanted;
+      const minutesRemaining = Math.max(0, 60 - effectiveMinutes);
+      
+      let statusMessage = `This pumpkin will be ready to harvest in ${minutesRemaining} minutes`;
+      if (plot.fertilized) {
+        statusMessage += " (fertilized - growing 2x faster!)";
+      } else if (player.fertilizer > 0) {
+        statusMessage += " (click again to apply fertilizer)";
+      }
+      
       toast({
         title: "Pumpkin Growing 🌱",
-        description: `This pumpkin will be ready to harvest in ${minutesRemaining} minutes`,
+        description: statusMessage,
       });
     }
   };
@@ -318,6 +355,10 @@ export default function Game() {
                       <span className="text-lg">📏</span>
                       <span>Expand your field for more space</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⚡</span>
+                      <span>Click growing plants to apply fertilizer</span>
+                    </div>
                   </div>
                 </div>
 
@@ -376,13 +417,18 @@ export default function Game() {
                         return (
                           <div
                             key={`${row}-${col}`}
-                            className={`aspect-square rounded-lg border-2 shadow-lg transition-all duration-200 flex items-center justify-center ${styles}`}
+                            className={`aspect-square rounded-lg border-2 shadow-lg transition-all duration-200 flex items-center justify-center relative ${styles}`}
                             onClick={() => handlePlotClick(row, col)}
                           >
                             {emoji ? (
                               <span className="text-2xl animate-bounce-gentle">{emoji}</span>
                             ) : (
                               <Plus className="text-cream/50 text-lg hover:text-golden transition-colors" />
+                            )}
+                            {plot?.fertilized && plot.state !== "empty" && (
+                              <div className="absolute top-1 right-1 bg-yellow-400 text-yellow-800 rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">
+                                ⚡
+                              </div>
                             )}
                           </div>
                         );

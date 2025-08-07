@@ -123,6 +123,7 @@ export class MemStorage implements IStorage {
             state: "empty",
             plantedAt: null,
             lastWatered: null,
+            fertilized: 0,
           });
         }
       }
@@ -181,6 +182,7 @@ export class MemStorage implements IStorage {
             state: "empty",
             plantedAt: null,
             lastWatered: null,
+            fertilized: 0,
           });
         }
       }
@@ -203,12 +205,15 @@ export class MemStorage implements IStorage {
 
       const minutesSincePlanted = Math.floor((now.getTime() - plot.plantedAt.getTime()) / (1000 * 60));
       
+      // Apply fertilizer speed boost (reduces time needed by 50%)
+      const effectiveMinutes = plot.fertilized ? minutesSincePlanted * 2 : minutesSincePlanted;
+      
       let newState: PlotState = plot.state;
-      if (minutesSincePlanted >= 60) {
+      if (effectiveMinutes >= 60) {
         newState = "mature";
-      } else if (minutesSincePlanted >= 30) {
+      } else if (effectiveMinutes >= 30) {
         newState = "growing";
-      } else if (minutesSincePlanted >= 0) {
+      } else if (effectiveMinutes >= 0) {
         newState = "seedling";
       }
 

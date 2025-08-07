@@ -26,6 +26,7 @@ export const plots = pgTable("plots", {
   state: text("state").$type<PlotState>().notNull().default("empty"),
   plantedAt: timestamp("planted_at"),
   lastWatered: timestamp("last_watered"),
+  fertilized: integer("fertilized").notNull().default(0), // 0 = not fertilized, 1 = fertilized
 });
 
 export const insertPlayerSchema = createInsertSchema(players).omit({
@@ -50,6 +51,12 @@ export const plantSeedSchema = z.object({
 });
 
 export const harvestPlotSchema = z.object({
+  playerId: z.string(),
+  row: z.number().min(0).max(9),
+  col: z.number().min(0).max(9),
+});
+
+export const fertilizePlotSchema = z.object({
   playerId: z.string(),
   row: z.number().min(0).max(9),
   col: z.number().min(0).max(9),
