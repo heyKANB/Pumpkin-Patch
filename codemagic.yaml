@@ -33,6 +33,10 @@ workflows:
           npm ci
           # Ensure build tools are globally available
           export PATH="$PATH:./node_modules/.bin"
+          # Verify installations
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          ls -la ./node_modules/.bin/ | grep -E "(vite|cap)"
       - name: Type check
         script: |
           # Skip type checking for now as TypeScript is only needed for build
@@ -41,13 +45,16 @@ workflows:
         script: |
           # Build web app for mobile
           echo "Building frontend for mobile..."
-          npx --yes vite@^5.4.19 build
+          # Use local node_modules vite
+          ./node_modules/.bin/vite build
           echo "Initializing Capacitor..."
-          npx cap init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
+          # Use JavaScript config instead of TypeScript
+          rm -f capacitor.config.ts
+          ./node_modules/.bin/cap init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
           echo "Adding iOS platform..."
-          npx cap add ios
+          ./node_modules/.bin/cap add ios
           echo "Syncing with Capacitor..."
-          npx cap sync ios
+          ./node_modules/.bin/cap sync ios
       - name: Build iOS app
         script: |
           echo "Building iOS app with Xcode..."
