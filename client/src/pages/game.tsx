@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
-import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store } from "lucide-react";
+import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat } from "lucide-react";
 import Marketplace from "@/components/marketplace";
+import { Kitchen } from "@/components/kitchen";
 import { useState } from "react";
 
 const PLAYER_ID = "default";
@@ -14,6 +15,7 @@ const PLAYER_ID = "default";
 export default function Game() {
   const { toast } = useToast();
   const [showMarketplace, setShowMarketplace] = useState(false);
+  const [showKitchen, setShowKitchen] = useState(false);
 
   // Queries
   const { data: player, isLoading: playerLoading } = useQuery<Player>({
@@ -305,6 +307,18 @@ export default function Game() {
                 </div>
               </div>
 
+              {player && (player.pies || 0) > 0 && (
+                <div className="bg-amber-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-amber-500/50">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl">🥧</div>
+                    <div>
+                      <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Pies</p>
+                      <p className="text-lg font-bold text-cream">{player.pies || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {((player?.fertilizer || 0) > 0 || (player?.tools || 0) > 0) && (
                 <div className="bg-purple-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-purple-500/50">
                   <div className="flex items-center gap-2">
@@ -312,8 +326,8 @@ export default function Game() {
                     <div>
                       <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Supplies</p>
                       <p className="text-sm font-bold text-cream">
-                        {(player?.fertilizer || 0) > 0 && `${player.fertilizer} fertilizer `}
-                        {(player?.tools || 0) > 0 && `${player.tools} tools`}
+                        {(player?.fertilizer || 0) > 0 && `${player?.fertilizer} fertilizer `}
+                        {(player?.tools || 0) > 0 && `${player?.tools} tools`}
                       </p>
                     </div>
                   </div>
@@ -475,6 +489,14 @@ export default function Game() {
                   </Button>
                   
                   <Button
+                    className="bg-gradient-to-r from-orange-600 to-orange-800 hover:from-orange-700 hover:to-orange-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
+                    onClick={() => setShowKitchen(!showKitchen)}
+                  >
+                    <span className="mr-2 text-lg">👨‍🍳</span>
+                    {showKitchen ? "Close Kitchen" : "Open Kitchen"}
+                  </Button>
+                  
+                  <Button
                     className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
                     onClick={() => expandMutation.mutate()}
                     disabled={expandMutation.isPending || !expansionCost || (player?.coins || 0) < expansionCost}
@@ -508,6 +530,13 @@ export default function Game() {
         {showMarketplace && player && (
           <div className="mt-6">
             <Marketplace player={player} />
+          </div>
+        )}
+
+        {/* Kitchen */}
+        {showKitchen && player && (
+          <div className="mt-6">
+            <Kitchen player={player} />
           </div>
         )}
       </div>

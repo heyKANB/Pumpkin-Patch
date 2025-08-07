@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a dynamic grid-based farm field. The game features real-time growth mechanics where pumpkins take 60 minutes to mature, and progressive field expansion from 3x3 up to 10x10 with incrementally increasing costs, creating an engaging progression system with autumn/October theming.
+This is a web-based farming simulation game built with a full-stack architecture. Players can plant seeds, grow pumpkins, and manage resources like coins, seeds, and harvested pumpkins on a dynamic grid-based farm field. The game features real-time growth mechanics where pumpkins take 60 minutes to mature, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing pumpkins into valuable pies. Enhanced with fertilizer system for accelerated growth and autumn/October theming throughout.
 
 # User Preferences
 
@@ -31,18 +31,21 @@ Preferred communication style: Simple, everyday language.
 - **Connection**: Neon Database serverless PostgreSQL for production deployments
 
 ## Database Schema Design
-- **Players Table**: Stores user progress (coins, seeds, pumpkins, day progression, field size)
-- **Plots Table**: Manages individual farm plots with state tracking (empty, seedling, growing, mature)
-- **Relationships**: Plot ownership linked to players through foreign keys
-- **Timestamps**: Automatic tracking of planting time and last update for growth calculations
-- **Field Expansion**: Dynamic field sizing from 3x3 to 10x10 with exponential cost scaling
+- **Players Table**: Stores user progress (coins, seeds, pumpkins, pies, fertilizer, field size, kitchen slots)
+- **Plots Table**: Manages individual farm plots with state tracking (empty, seedling, growing, mature, fertilized)
+- **Ovens Table**: Manages kitchen oven slots with baking state tracking (empty, baking, ready)
+- **Relationships**: Plot and oven ownership linked to players through foreign keys
+- **Timestamps**: Automatic tracking of planting time, baking start time, and last update for growth calculations
+- **Dynamic Expansion**: Field sizing from 3x3 to 10x10 and kitchen slots from 1 to 5 with exponential cost scaling
 
 ## Game Logic Architecture
-- **Growth System**: Time-based progression where pumpkins mature over 60 minutes
-- **Resource Management**: Coin-based economy for buying seeds, selling pumpkins, and field expansion
-- **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with increasing costs
-- **Expansion Economy**: Exponential cost scaling (50, 100, 200, 400... coins) for field upgrades
-- **State Validation**: Zod schemas for runtime type checking and API request validation
+- **Growth System**: Time-based progression where pumpkins mature over 60 minutes (30 minutes with fertilizer boost)
+- **Processing System**: Kitchen with expandable oven slots for baking pumpkins into pies (30-minute bake time)
+- **Resource Management**: Multi-tier economy with seeds (10 coins), fertilizer (10 coins), pumpkins (25 coins), and pies (40 coins)
+- **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with exponential cost scaling
+- **Kitchen Management**: Oven slots starting at 1, expandable to 5 with progressive cost increases (100, 200, 400, 800 coins)
+- **Enhancement System**: Fertilizer application for 2x growth speed with visual indicators
+- **State Validation**: Comprehensive Zod schemas for runtime type checking and API request validation
 
 ## Development Tools
 - **Build System**: Vite with React plugin for fast development and optimized production builds

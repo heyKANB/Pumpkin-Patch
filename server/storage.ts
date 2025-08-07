@@ -1,4 +1,4 @@
-import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState } from "@shared/schema";
+import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState, type Oven, type InsertOven, type OvenState } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -13,19 +13,30 @@ export interface IStorage {
   createPlot(plot: InsertPlot): Promise<Plot>;
   updatePlot(playerId: string, row: number, col: number, updates: Partial<Plot>): Promise<Plot | undefined>;
   
+  // Oven operations
+  getPlayerOvens(playerId: string): Promise<Oven[]>;
+  getOven(playerId: string, slotNumber: number): Promise<Oven | undefined>;
+  createOven(oven: InsertOven): Promise<Oven>;
+  updateOven(playerId: string, slotNumber: number, updates: Partial<Oven>): Promise<Oven | undefined>;
+  
   // Game operations
   initializePlayerField(playerId: string): Promise<void>;
+  initializePlayerKitchen(playerId: string): Promise<void>;
   updatePumpkinGrowth(): Promise<void>;
+  updatePieBaking(): Promise<void>;
   expandPlayerField(playerId: string): Promise<{ success: boolean; message: string; cost?: number }>;
+  expandPlayerKitchen(playerId: string): Promise<{ success: boolean; message: string; cost?: number }>;
 }
 
 export class MemStorage implements IStorage {
   private players: Map<string, Player>;
   private plots: Map<string, Plot>;
+  private ovens: Map<string, Oven>;
 
   constructor() {
     this.players = new Map();
     this.plots = new Map();
+    this.ovens = new Map();
     
     // Create default player for demo
     this.createDefaultPlayer();
@@ -37,14 +48,17 @@ export class MemStorage implements IStorage {
       coins: 150,
       seeds: 25,
       pumpkins: 8,
+      pies: 0,
       fertilizer: 0,
       tools: 0,
       day: 1,
       fieldSize: 3,
+      kitchenSlots: 1,
       lastUpdated: new Date(),
     };
     this.players.set("default", defaultPlayer);
     await this.initializePlayerField("default");
+    await this.initializePlayerKitchen("default");
   }
 
   private getPlotKey(playerId: string, row: number, col: number): string {
@@ -58,12 +72,21 @@ export class MemStorage implements IStorage {
   async createPlayer(insertPlayer: InsertPlayer): Promise<Player> {
     const id = randomUUID();
     const player: Player = { 
-      ...insertPlayer, 
       id,
+      coins: insertPlayer.coins ?? 150,
+      seeds: insertPlayer.seeds ?? 25,
+      pumpkins: insertPlayer.pumpkins ?? 8,
+      pies: insertPlayer.pies ?? 0,
+      fertilizer: insertPlayer.fertilizer ?? 0,
+      tools: insertPlayer.tools ?? 0,
+      day: insertPlayer.day ?? 1,
+      fieldSize: insertPlayer.fieldSize ?? 3,
+      kitchenSlots: insertPlayer.kitchenSlots ?? 1,
       lastUpdated: new Date(),
     };
     this.players.set(id, player);
     await this.initializePlayerField(id);
+    await this.initializePlayerKitchen(id);
     return player;
   }
 
@@ -91,7 +114,16 @@ export class MemStorage implements IStorage {
 
   async createPlot(insertPlot: InsertPlot): Promise<Plot> {
     const id = randomUUID();
-    const plot: Plot = { ...insertPlot, id };
+    const plot: Plot = { 
+      id,
+      playerId: insertPlot.playerId,
+      row: insertPlot.row,
+      col: insertPlot.col,
+      state: (insertPlot.state as PlotState) ?? "empty",
+      plantedAt: insertPlot.plantedAt ?? null,
+      lastWatered: insertPlot.lastWatered ?? null,
+      fertilized: insertPlot.fertilized ?? 0,
+    };
     const key = this.getPlotKey(plot.playerId, plot.row, plot.col);
     this.plots.set(key, plot);
     return plot;
@@ -195,10 +227,110 @@ export class MemStorage implements IStorage {
     };
   }
 
+  // Oven operations
+  private getOvenKey(playerId: string, slotNumber: number): string {
+    return `${playerId}-${slotNumber}`;
+  }
+
+  async getPlayerOvens(playerId: string): Promise<Oven[]> {
+    return Array.from(this.ovens.values()).filter(oven => oven.playerId === playerId);
+  }
+
+  async getOven(playerId: string, slotNumber: number): Promise<Oven | undefined> {
+    const key = this.getOvenKey(playerId, slotNumber);
+    return this.ovens.get(key);
+  }
+
+  async createOven(insertOven: InsertOven): Promise<Oven> {
+    const id = randomUUID();
+    const oven: Oven = {
+      id,
+      playerId: insertOven.playerId,
+      slotNumber: insertOven.slotNumber,
+      state: (insertOven.state as OvenState) ?? "empty",
+      startedAt: insertOven.startedAt ?? null,
+      lastUpdated: new Date(),
+    };
+    const key = this.getOvenKey(oven.playerId, oven.slotNumber);
+    this.ovens.set(key, oven);
+    return oven;
+  }
+
+  async updateOven(playerId: string, slotNumber: number, updates: Partial<Oven>): Promise<Oven | undefined> {
+    const key = this.getOvenKey(playerId, slotNumber);
+    const oven = this.ovens.get(key);
+    if (!oven) return undefined;
+    
+    const updatedOven = { 
+      ...oven, 
+      ...updates, 
+      lastUpdated: new Date() 
+    };
+    this.ovens.set(key, updatedOven);
+    return updatedOven;
+  }
+
+  async initializePlayerKitchen(playerId: string): Promise<void> {
+    const player = this.players.get(playerId);
+    const kitchenSlots = player?.kitchenSlots || 1;
+    
+    // Create oven slots based on player's current kitchen size
+    for (let slot = 0; slot < kitchenSlots; slot++) {
+      const existingOven = await this.getOven(playerId, slot);
+      if (!existingOven) {
+        await this.createOven({
+          playerId,
+          slotNumber: slot,
+          state: "empty",
+          startedAt: null,
+        });
+      }
+    }
+  }
+
+  async expandPlayerKitchen(playerId: string): Promise<{ success: boolean; message: string; cost?: number }> {
+    const player = this.players.get(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    if (player.kitchenSlots >= 5) {
+      return { success: false, message: "Kitchen is already at maximum size (5 slots)" };
+    }
+
+    // Calculate expansion cost: 100 coins for 2nd slot, 200 for 3rd, 400 for 4th, 800 for 5th
+    const newSlots = player.kitchenSlots + 1;
+    const cost = Math.pow(2, newSlots - 2) * 100;
+
+    if (player.coins < cost) {
+      return { success: false, message: `Not enough coins. Kitchen expansion to ${newSlots} slots costs ${cost} coins`, cost };
+    }
+
+    // Update player
+    await this.updatePlayer(playerId, {
+      coins: player.coins - cost,
+      kitchenSlots: newSlots,
+    });
+
+    // Add new oven slot
+    await this.createOven({
+      playerId,
+      slotNumber: newSlots - 1,
+      state: "empty",
+      startedAt: null,
+    });
+
+    return { 
+      success: true, 
+      message: `Kitchen expanded to ${newSlots} slots for ${cost} coins!`,
+      cost 
+    };
+  }
+
   async updatePumpkinGrowth(): Promise<void> {
     const now = new Date();
     
-    for (const plot of this.plots.values()) {
+    for (const plot of Array.from(this.plots.values())) {
       if (plot.state === "empty" || plot.state === "mature" || !plot.plantedAt) {
         continue;
       }
@@ -219,6 +351,24 @@ export class MemStorage implements IStorage {
 
       if (newState !== plot.state) {
         await this.updatePlot(plot.playerId, plot.row, plot.col, { state: newState });
+      }
+    }
+  }
+
+  async updatePieBaking(): Promise<void> {
+    const now = new Date();
+    
+    for (const oven of Array.from(this.ovens.values())) {
+      if (oven.state !== "baking" || !oven.startedAt) {
+        continue;
+      }
+
+      const minutesSinceStarted = Math.floor((now.getTime() - oven.startedAt.getTime()) / (1000 * 60));
+      
+      if (minutesSinceStarted >= 30) { // 30 minutes baking time
+        await this.updateOven(oven.playerId, oven.slotNumber, { 
+          state: "ready" 
+        });
       }
     }
   }

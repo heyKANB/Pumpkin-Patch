@@ -8,6 +8,9 @@ import {
   buyItemSchema, 
   sellItemSchema,
   expandFieldSchema,
+  startBakingSchema,
+  collectPieSchema,
+  expandKitchenSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
@@ -242,6 +245,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (item === "seeds") {
         price = quantity * 8; // 8 coins per seed (sell for less than buy price)
         hasEnough = player.seeds >= quantity;
+      } else if (item === "pies") {
+        price = quantity * 40; // 40 coins per pie (premium price)
+        hasEnough = player.pies >= quantity;
       }
 
       if (!hasEnough) {
@@ -256,6 +262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.pumpkins = player.pumpkins - quantity;
       } else if (item === "seeds") {
         updates.seeds = player.seeds - quantity;
+      } else if (item === "pies") {
+        updates.pies = player.pies - quantity;
       }
 
       await storage.updatePlayer(playerId, updates);
@@ -291,6 +299,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Get player's ovens
+  app.get("/api/player/:id/ovens", async (req, res) => {
+    try {
+      await storage.updatePieBaking(); // Update baking status before returning ovens
+      const ovens = await storage.getPlayerOvens(req.params.id);
+      res.json(ovens);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get ovens" });
+    }
+  });
+
+  // Start baking a pie
+  app.post("/api/bake", async (req, res) => {
+    try {
+      const validatedData = startBakingSchema.parse(req.body);
+      const { playerId, slotNumber } = validatedData;
+
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      if (player.pumpkins < 1) {
+        return res.status(400).json({ message: "Not enough pumpkins to bake a pie" });
+      }
+
+      const oven = await storage.getOven(playerId, slotNumber);
+      if (!oven) {
+        return res.status(404).json({ message: "Oven slot not found" });
+      }
+
+      if (oven.state !== "empty") {
+        return res.status(400).json({ message: "Oven slot is not empty" });
+      }
+
+      // Start baking
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        pumpkins: player.pumpkins - 1,
+      });
+
+      const updatedOven = await storage.updateOven(playerId, slotNumber, {
+        state: "baking",
+        startedAt: new Date(),
+      });
+
+      await storage.updatePieBaking();
+
+      res.json({ 
+        player: updatedPlayer, 
+        oven: updatedOven,
+        message: "Started baking pumpkin pie!" 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start baking" });
+    }
+  });
+
+  // Collect finished pie
+  app.post("/api/collect-pie", async (req, res) => {
+    try {
+      const validatedData = collectPieSchema.parse(req.body);
+      const { playerId, slotNumber } = validatedData;
+
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      const oven = await storage.getOven(playerId, slotNumber);
+      if (!oven) {
+        return res.status(404).json({ message: "Oven slot not found" });
+      }
+
+      if (oven.state !== "ready") {
+        return res.status(400).json({ message: "Pie is not ready to collect" });
+      }
+
+      // Collect pie
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        pies: player.pies + 1,
+      });
+
+      const updatedOven = await storage.updateOven(playerId, slotNumber, {
+        state: "empty",
+        startedAt: null,
+      });
+
+      res.json({ 
+        player: updatedPlayer, 
+        oven: updatedOven,
+        message: "Collected pumpkin pie!" 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to collect pie" });
+    }
+  });
+
+  // Expand kitchen
+  app.post("/api/expand-kitchen", async (req, res) => {
+    try {
+      const validatedData = expandKitchenSchema.parse(req.body);
+      const { playerId } = validatedData;
+
+      const result = await storage.expandPlayerKitchen(playerId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.message, cost: result.cost });
+      }
+
+      const updatedPlayer = await storage.getPlayer(playerId);
+      res.json({ 
+        player: updatedPlayer, 
+        message: result.message,
+        cost: result.cost 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to expand kitchen" });
     }
   });
 
