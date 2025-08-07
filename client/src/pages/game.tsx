@@ -10,7 +10,7 @@ import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, 
 
 const PLAYER_ID = "default";
 
-type Tool = "plant" | "harvest" | "water";
+type Tool = "plant" | "harvest";
 
 export default function Game() {
   const [selectedTool, setSelectedTool] = useState<Tool>("plant");
@@ -307,20 +307,7 @@ export default function Game() {
                     </div>
                   </div>
 
-                  <div 
-                    className={`bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 border-2 border-blue-500 shadow-lg cursor-pointer hover:scale-105 transition-all duration-200 opacity-75 ${
-                      selectedTool === "water" ? "ring-4 ring-golden/50" : ""
-                    }`}
-                    onClick={() => setSelectedTool("water")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="text-white text-2xl">💧</div>
-                      <div>
-                        <h3 className="font-semibold text-white">Water</h3>
-                        <p className="text-blue-100 text-sm">Speed up growth</p>
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
 
                 <div className="bg-cream/80 rounded-xl p-4 border-2 border-golden/30">
