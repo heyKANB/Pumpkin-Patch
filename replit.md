@@ -5,6 +5,7 @@ This is a web-based farming simulation game built with a full-stack architecture
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Farmer's Bolt: User prefers to manually select which crop type to plant using a selection interface, while keeping automatic harvesting for mature crops.
 
 # System Architecture
 

@@ -16,6 +16,7 @@ export default function Game() {
   const { toast } = useToast();
   const [showMarketplace, setShowMarketplace] = useState(false);
   const [showKitchen, setShowKitchen] = useState(false);
+  const [selectedCropType, setSelectedCropType] = useState<"pumpkin" | "apple">("pumpkin");
 
   // Queries
   const { data: player, isLoading: playerLoading } = useQuery<Player>({
@@ -187,9 +188,22 @@ export default function Game() {
 
     // Automatically determine action based on plot state
     if (plot.state === "empty") {
-      // Plant pumpkins by default, or apples if player has only apple seeds
-      const cropType = player.seeds > 0 ? "pumpkin" : (player.appleSeeds > 0 ? "apple" : "pumpkin");
-      plantMutation.mutate({ row, col, cropType });
+      // Check if player has the selected seed type
+      const hasSelectedSeeds = selectedCropType === "apple" ? 
+        (player.appleSeeds > 0) : 
+        (player.seeds > 0);
+      
+      if (!hasSelectedSeeds) {
+        const cropName = selectedCropType === "apple" ? "apple" : "pumpkin";
+        toast({
+          title: "No Seeds Available",
+          description: `You don't have any ${cropName} seeds. Buy some from the marketplace!`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      plantMutation.mutate({ row, col, cropType: selectedCropType });
     } else if (plot.state === "mature") {
       harvestMutation.mutate({ row, col });
     } else if ((plot.state === "seedling" || plot.state === "growing") && !plot.fertilized && player.fertilizer > 0) {
@@ -391,8 +405,12 @@ export default function Game() {
                   <h3 className="font-semibold text-dark-brown mb-3">How to Farm</h3>
                   <div className="space-y-2 text-sm text-dark-brown">
                     <div className="flex items-center gap-2">
+                      <span className="text-lg">⚡</span>
+                      <span>Use Farmer's Bolt to select crop type</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <span className="text-lg">🌱</span>
-                      <span>Click empty plots to plant seeds</span>
+                      <span>Click empty plots to plant selected seeds</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🎃</span>
@@ -541,6 +559,52 @@ export default function Game() {
                     <Expand className="mr-2 h-4 w-4" />
                     {expansionCost ? `Expand Field (${expansionCost} coins)` : "Max Size Reached"}
                   </Button>
+                </div>
+
+                {/* Farmer's Bolt - Crop Selection */}
+                <div className="bg-gradient-to-r from-amber-100 to-amber-200 rounded-xl p-4 border-2 border-amber-800/50">
+                  <h3 className="font-bold text-dark-brown mb-3 flex items-center gap-2">
+                    <span className="text-xl">⚡</span>
+                    Farmer's Bolt - Select Crop to Plant
+                  </h3>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setSelectedCropType("pumpkin")}
+                      className={`flex items-center gap-2 ${
+                        selectedCropType === "pumpkin" 
+                          ? "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-800" 
+                          : "bg-white hover:bg-orange-50 text-dark-brown border-2 border-orange-300"
+                      }`}
+                      disabled={player?.seeds === 0}
+                    >
+                      <span className="text-lg">🎃</span>
+                      <div className="text-left">
+                        <div className="font-semibold">Pumpkin Seeds</div>
+                        <div className="text-xs opacity-80">You have: {player?.seeds || 0}</div>
+                      </div>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => setSelectedCropType("apple")}
+                      className={`flex items-center gap-2 ${
+                        selectedCropType === "apple" 
+                          ? "bg-red-600 hover:bg-red-700 text-white border-2 border-red-800" 
+                          : "bg-white hover:bg-red-50 text-dark-brown border-2 border-red-300"
+                      }`}
+                      disabled={player?.appleSeeds === 0}
+                    >
+                      <span className="text-lg">🍎</span>
+                      <div className="text-left">
+                        <div className="font-semibold">Apple Seeds</div>
+                        <div className="text-xs opacity-80">You have: {player?.appleSeeds || 0}</div>
+                      </div>
+                    </Button>
+                  </div>
+                  <div className="mt-3 text-sm text-dark-brown/70">
+                    Selected: <span className="font-semibold text-dark-brown">
+                      {selectedCropType === "apple" ? "🍎 Apple" : "🎃 Pumpkin"} 
+                    </span> - Click empty plots to plant this crop type
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
