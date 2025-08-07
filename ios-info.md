@@ -21,3 +21,6 @@ The CI/CD pipeline will:
 
 ## Note
 The app ID (6749664824) is used in App Store Connect for app identification, while the Bundle ID (com.huntergames.pumpkinpatch) is used for code signing and app distribution with the "Apple Connect App Mgr" integration key and "PumpkinPatch" provisioning profile.
+
+## Security
+The API key (AuthKey_7629KQWD3Z.p8) should be uploaded securely to CodeMagic's environment variables or integration settings. Never commit private keys to version control.
