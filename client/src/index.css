@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(45, 50%, 95%);
+  --foreground: hsl(25, 25%, 20%);
+  --card: hsl(45, 30%, 97%);
+  --card-foreground: hsl(25, 25%, 20%);
+  --popover: hsl(45, 50%, 95%);
+  --popover-foreground: hsl(25, 25%, 20%);
+  --primary: hsl(25, 100%, 63%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(25, 25%, 20%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(210, 5%, 90%);
+  --muted-foreground: hsl(25, 25%, 20%);
+  --accent: hsl(45, 40%, 85%);
+  --accent-foreground: hsl(25, 100%, 63%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(30, 20%, 85%);
+  --input: hsl(45, 25%, 96%);
+  --ring: hsl(25, 100%, 63%);
+  --chart-1: hsl(25, 100%, 63%);
+  --chart-2: hsl(120, 100%, 30%);
+  --chart-3: hsl(45, 90%, 55%);
+  --chart-4: hsl(30, 78%, 42%);
+  --chart-5: hsl(340, 75%, 51%);
+  --sidebar: hsl(45, 30%, 97%);
+  --sidebar-foreground: hsl(25, 25%, 20%);
+  --sidebar-primary: hsl(25, 100%, 63%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(45, 40%, 85%);
+  --sidebar-accent-foreground: hsl(25, 100%, 63%);
+  --sidebar-border: hsl(30, 20%, 85%);
+  --sidebar-ring: hsl(25, 100%, 63%);
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1rem;
+  
+  /* Autumn color palette */
+  --pumpkin: hsl(25, 100%, 63%);
+  --deep-red: hsl(355, 35%, 60%);
+  --golden: hsl(42, 75%, 63%);
+  --rich-brown: hsl(25, 60%, 35%);
+  --cream: hsl(45, 50%, 92%);
+  --dark-brown: hsl(25, 40%, 15%);
+  --forest-green: hsl(90, 50%, 25%);
+  --burgundy: hsl(345, 75%, 25%);
+}
+
+.dark {
+  --background: hsl(25, 40%, 8%);
+  --foreground: hsl(45, 20%, 85%);
+  --card: hsl(25, 35%, 12%);
+  --card-foreground: hsl(45, 20%, 85%);
+  --popover: hsl(25, 40%, 8%);
+  --popover-foreground: hsl(45, 20%, 85%);
+  --primary: hsl(25, 100%, 63%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(45, 15%, 85%);
+  --secondary-foreground: hsl(25, 25%, 20%);
+  --muted: hsl(25, 15%, 15%);
+  --muted-foreground: hsl(45, 10%, 55%);
+  --accent: hsl(25, 50%, 18%);
+  --accent-foreground: hsl(25, 100%, 63%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(25, 20%, 25%);
+  --input: hsl(25, 25%, 20%);
+  --ring: hsl(25, 100%, 63%);
+  --chart-1: hsl(25, 100%, 63%);
+  --chart-2: hsl(120, 100%, 30%);
+  --chart-3: hsl(45, 90%, 55%);
+  --chart-4: hsl(30, 78%, 42%);
+  --chart-5: hsl(340, 75%, 51%);
+  --sidebar: hsl(25, 35%, 12%);
+  --sidebar-foreground: hsl(45, 20%, 85%);
+  --sidebar-primary: hsl(25, 100%, 63%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(25, 50%, 18%);
+  --sidebar-accent-foreground: hsl(25, 100%, 63%);
+  --sidebar-border: hsl(25, 20%, 25%);
+  --sidebar-ring: hsl(25, 100%, 63%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-gradient-to-br from-amber-200 via-orange-100 to-orange-300 min-h-screen;
+  }
+}
+
+@layer utilities {
+  .text-pumpkin {
+    color: hsl(25, 100%, 63%);
+  }
+  
+  .text-deep-red {
+    color: hsl(355, 35%, 60%);
+  }
+  
+  .text-golden {
+    color: hsl(42, 75%, 63%);
+  }
+  
+  .text-rich-brown {
+    color: hsl(25, 60%, 35%);
+  }
+  
+  .text-cream {
+    color: hsl(45, 50%, 92%);
+  }
+  
+  .text-dark-brown {
+    color: hsl(25, 40%, 15%);
+  }
+  
+  .text-forest-green {
+    color: hsl(90, 50%, 25%);
+  }
+  
+  .text-burgundy {
+    color: hsl(345, 75%, 25%);
+  }
+  
+  .bg-pumpkin {
+    background-color: hsl(25, 100%, 63%);
+  }
+  
+  .bg-deep-red {
+    background-color: hsl(355, 35%, 60%);
+  }
+  
+  .bg-golden {
+    background-color: hsl(42, 75%, 63%);
+  }
+  
+  .bg-rich-brown {
+    background-color: hsl(25, 60%, 35%);
+  }
+  
+  .bg-cream {
+    background-color: hsl(45, 50%, 92%);
+  }
+  
+  .bg-dark-brown {
+    background-color: hsl(25, 40%, 15%);
+  }
+  
+  .bg-forest-green {
+    background-color: hsl(90, 50%, 25%);
+  }
+  
+  .bg-burgundy {
+    background-color: hsl(345, 75%, 25%);
+  }
+  
+  .border-pumpkin {
+    border-color: hsl(25, 100%, 63%);
+  }
+  
+  .border-deep-red {
+    border-color: hsl(355, 35%, 60%);
+  }
+  
+  .border-golden {
+    border-color: hsl(42, 75%, 63%);
+  }
+  
+  .border-rich-brown {
+    border-color: hsl(25, 60%, 35%);
+  }
+  
+  .border-cream {
+    border-color: hsl(45, 50%, 92%);
+  }
+  
+  .border-dark-brown {
+    border-color: hsl(25, 40%, 15%);
+  }
+  
+  .border-forest-green {
+    border-color: hsl(90, 50%, 25%);
+  }
+  
+  .border-burgundy {
+    border-color: hsl(345, 75%, 25%);
+  }
+
+  .animate-bounce-gentle {
+    animation: bounce 2s infinite;
+  }
+  
+  .animate-pulse-gentle {
+    animation: pulse 3s infinite;
+  }
+  
+  .animate-grow {
+    animation: grow 0.5s ease-in-out;
+  }
+  
+  @keyframes grow {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
