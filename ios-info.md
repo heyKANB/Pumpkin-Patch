@@ -6,7 +6,7 @@
 - **App Name**: Pumpkin Patch
 - **Apple ID**: Kathryn.new@hotmail.com
 - **Integration Key**: Apple Connect App Mgr
-- **Provisioning Profile**: PumpkinPatch
+- **Provisioning Profile**: PumpkinPatch2
 - **Key ID**: 7629KQWD3Z
 - **Issuer ID**: 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
 
@@ -20,7 +20,7 @@ The CI/CD pipeline will:
 6. Submit to TestFlight automatically
 
 ## Note
-The app ID (6749664824) is used in App Store Connect for app identification, while the Bundle ID (com.huntergames.pumpkinpatch) is used for code signing and app distribution with the "Apple Connect App Mgr" integration key and "PumpkinPatch" provisioning profile.
+The app ID (6749664824) is used in App Store Connect for app identification, while the Bundle ID (com.huntergames.pumpkinpatch) is used for code signing and app distribution with the "Apple Connect App Mgr" integration key and "PumpkinPatch2" provisioning profile.
 
 ## Security
 The API key (AuthKey_7629KQWD3Z.p8) should be uploaded securely to CodeMagic's environment variables or integration settings. Never commit private keys to version control.
