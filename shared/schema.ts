@@ -8,6 +8,8 @@ export const players = pgTable("players", {
   coins: integer("coins").notNull().default(150),
   seeds: integer("seeds").notNull().default(25),
   pumpkins: integer("pumpkins").notNull().default(8),
+  fertilizer: integer("fertilizer").notNull().default(0),
+  tools: integer("tools").notNull().default(0),
   day: integer("day").notNull().default(1),
   fieldSize: integer("field_size").notNull().default(3),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
@@ -55,13 +57,13 @@ export const harvestPlotSchema = z.object({
 
 export const buyItemSchema = z.object({
   playerId: z.string(),
-  item: z.enum(["seeds"]),
+  item: z.enum(["seeds", "fertilizer", "tools"]),
   quantity: z.number().min(1).max(100),
 });
 
 export const sellItemSchema = z.object({
   playerId: z.string(),
-  item: z.enum(["pumpkins"]),
+  item: z.enum(["pumpkins", "seeds"]),
   quantity: z.number().min(1),
 });
 

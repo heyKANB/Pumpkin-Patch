@@ -37,6 +37,8 @@ export class MemStorage implements IStorage {
       coins: 150,
       seeds: 25,
       pumpkins: 8,
+      fertilizer: 0,
+      tools: 0,
       day: 1,
       fieldSize: 3,
       lastUpdated: new Date(),

@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
-import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp } from "lucide-react";
+import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store } from "lucide-react";
+import Marketplace from "@/components/marketplace";
+import { useState } from "react";
 
 const PLAYER_ID = "default";
 
 export default function Game() {
   const { toast } = useToast();
+  const [showMarketplace, setShowMarketplace] = useState(false);
 
   // Queries
   const { data: player, isLoading: playerLoading } = useQuery<Player>({
@@ -264,6 +267,21 @@ export default function Game() {
                   </div>
                 </div>
               </div>
+
+              {((player?.fertilizer || 0) > 0 || (player?.tools || 0) > 0) && (
+                <div className="bg-purple-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-purple-500/50">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl">⚡</div>
+                    <div>
+                      <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Supplies</p>
+                      <p className="text-sm font-bold text-cream">
+                        {(player?.fertilizer || 0) > 0 && `${player.fertilizer} fertilizer `}
+                        {(player?.tools || 0) > 0 && `${player.tools} tools`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -403,21 +421,11 @@ export default function Game() {
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:scale-105 transition-all duration-200"
-                    onClick={() => buyMutation.mutate({ item: "seeds", quantity: 5 })}
-                    disabled={buyMutation.isPending || (player?.coins || 0) < 50}
+                    className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
+                    onClick={() => setShowMarketplace(!showMarketplace)}
                   >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Buy 5 Seeds (50 coins)
-                  </Button>
-                  
-                  <Button
-                    className="bg-gradient-to-r from-golden to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-lg hover:scale-105 transition-all duration-200"
-                    onClick={() => sellMutation.mutate({ item: "pumpkins", quantity: Math.min(player?.pumpkins || 0, 5) })}
-                    disabled={sellMutation.isPending || (player?.pumpkins || 0) === 0}
-                  >
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Sell Pumpkins
+                    <Store className="mr-2 h-4 w-4" />
+                    {showMarketplace ? "Close Marketplace" : "Open Marketplace"}
                   </Button>
                   
                   <Button
@@ -449,6 +457,13 @@ export default function Game() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Marketplace */}
+        {showMarketplace && player && (
+          <div className="mt-6">
+            <Marketplace player={player} />
+          </div>
+        )}
       </div>
     </div>
   );

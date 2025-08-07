@@ -132,8 +132,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let cost = 0;
+      let itemName = item;
+      
+      // Define pricing for different items
       if (item === "seeds") {
         cost = quantity * 10; // 10 coins per seed
+      } else if (item === "fertilizer") {
+        cost = quantity * 25; // 25 coins per fertilizer
+        itemName = "fertilizer";
+      } else if (item === "tools") {
+        cost = quantity * 50; // 50 coins per tool
+        itemName = "tools";
       }
 
       if (player.coins < cost) {
@@ -144,8 +153,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         coins: player.coins - cost,
       };
 
+      // Update inventory based on item type
       if (item === "seeds") {
         updates.seeds = player.seeds + quantity;
+      } else if (item === "fertilizer") {
+        updates.fertilizer = player.fertilizer + quantity;
+      } else if (item === "tools") {
+        updates.tools = player.tools + quantity;
       }
 
       await storage.updatePlayer(playerId, updates);
@@ -153,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedPlayer = await storage.getPlayer(playerId);
       res.json({ 
         player: updatedPlayer,
-        message: `Bought ${quantity} ${item} for ${cost} coins!`
+        message: `Bought ${quantity} ${itemName} for ${cost} coins!`
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -171,12 +185,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let price = 0;
+      let hasEnough = false;
+      
       if (item === "pumpkins") {
         price = quantity * 25; // 25 coins per pumpkin
-        
-        if (player.pumpkins < quantity) {
-          return res.status(400).json({ message: "Not enough pumpkins" });
-        }
+        hasEnough = player.pumpkins >= quantity;
+      } else if (item === "seeds") {
+        price = quantity * 8; // 8 coins per seed (sell for less than buy price)
+        hasEnough = player.seeds >= quantity;
+      }
+
+      if (!hasEnough) {
+        return res.status(400).json({ message: `Not enough ${item}` });
       }
 
       const updates: any = {
@@ -185,6 +205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (item === "pumpkins") {
         updates.pumpkins = player.pumpkins - quantity;
+      } else if (item === "seeds") {
+        updates.seeds = player.seeds - quantity;
       }
 
       await storage.updatePlayer(playerId, updates);
