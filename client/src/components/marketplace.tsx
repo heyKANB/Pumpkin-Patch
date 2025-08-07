@@ -88,8 +88,8 @@ export default function Marketplace({ player }: MarketplaceProps) {
       id: "seeds",
       name: "Pumpkin Seeds",
       description: "Plant these to grow pumpkins",
-      buyPrice: 2,
-      sellPrice: 1,
+      buyPrice: 10,
+      sellPrice: 8,
       icon: <span className="text-2xl">🌱</span>,
       playerQuantity: player.seeds,
       canBuy: true,
@@ -246,10 +246,10 @@ export default function Marketplace({ player }: MarketplaceProps) {
               size="sm"
               className="bg-green-600 hover:bg-green-700"
               onClick={() => buyMutation.mutate({ item: "seeds", quantity: 5 })}
-              disabled={buyMutation.isPending || player.coins < 10}
+              disabled={buyMutation.isPending || player.coins < 50}
             >
               <Package className="h-3 w-3 mr-1" />
-              Buy 5 Seeds (10 coins)
+              Buy 5 Seeds (50 coins)
             </Button>
             <Button
               size="sm"

@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Define pricing for different items
       if (item === "seeds") {
-        cost = quantity * 2; // 2 coins per seed
+        cost = quantity * 10; // 10 coins per seed
       } else if (item === "fertilizer") {
         cost = quantity * 10; // 10 coins per fertilizer
         itemName = "fertilizer";
@@ -240,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         price = quantity * 25; // 25 coins per pumpkin
         hasEnough = player.pumpkins >= quantity;
       } else if (item === "seeds") {
-        price = quantity * 1; // 1 coin per seed (sell for less than buy price)
+        price = quantity * 8; // 8 coins per seed (sell for less than buy price)
         hasEnough = player.seeds >= quantity;
       }
 
