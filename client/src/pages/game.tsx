@@ -9,6 +9,7 @@ import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, 
 import Marketplace from "@/components/marketplace";
 import { Kitchen } from "@/components/kitchen";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
+import { RewardedAdButton } from "@/components/RewardedAdButton";
 import { useState } from "react";
 
 const PLAYER_ID = "default";
@@ -178,6 +179,26 @@ export default function Game() {
     },
   });
 
+  const rewardedAdMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/reward-coins", {
+        playerId: PLAYER_ID,
+        amount: 50,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to award coins",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePlotClick = (row: number, col: number) => {
     if (!plots || !player) return;
     
@@ -323,7 +344,13 @@ export default function Game() {
                   <Coins className="text-golden text-xl" />
                   <div>
                     <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Coins</p>
-                    <p className="text-lg font-bold text-cream">{player?.coins || 0}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold text-cream">{player?.coins || 0}</p>
+                      <RewardedAdButton
+                        onRewardEarned={() => rewardedAdMutation.mutate()}
+                        disabled={rewardedAdMutation.isPending}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

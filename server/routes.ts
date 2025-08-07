@@ -11,11 +11,13 @@ import {
   startBakingSchema,
   collectPieSchema,
   expandKitchenSchema,
+  rewardCoinsSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
   type SellItemRequest,
-  type ExpandFieldRequest
+  type ExpandFieldRequest,
+  type RewardCoinsRequest
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -408,6 +410,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to expand kitchen" });
+    }
+  });
+
+  // Reward coins from ad
+  app.post("/api/reward-coins", async (req, res) => {
+    try {
+      const { playerId, amount } = rewardCoinsSchema.parse(req.body);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        coins: player.coins + amount,
+      });
+
+      res.json({ 
+        player: updatedPlayer,
+        message: `Rewarded ${amount} coins!`
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request data" });
     }
   });
 

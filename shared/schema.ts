@@ -125,8 +125,14 @@ export const expandFieldSchema = z.object({
   playerId: z.string(),
 });
 
+export const rewardCoinsSchema = z.object({
+  playerId: z.string(),
+  amount: z.number().min(1).max(1000),
+});
+
 export type PlantSeedRequest = z.infer<typeof plantSeedSchema>;
 export type HarvestPlotRequest = z.infer<typeof harvestPlotSchema>;
 export type BuyItemRequest = z.infer<typeof buyItemSchema>;
 export type SellItemRequest = z.infer<typeof sellItemSchema>;
 export type ExpandFieldRequest = z.infer<typeof expandFieldSchema>;
+export type RewardCoinsRequest = z.infer<typeof rewardCoinsSchema>;
