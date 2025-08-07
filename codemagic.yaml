@@ -39,15 +39,28 @@ workflows:
           echo "Type checking skipped - handled during build process"
       - name: Build application
         script: |
-          # Create a simple build script that uses npx
-          echo "Building frontend..."
+          # Build web app for mobile
+          echo "Building frontend for mobile..."
           npx --yes vite@^5.4.19 build
-          echo "Building backend..."
-          npx --yes esbuild@^0.25.0 server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+          echo "Initializing Capacitor..."
+          npx cap init "Pumpkin Patch" "com.hunter-games.pumpkin-patch" --web-dir="dist/public"
+          echo "Adding iOS platform..."
+          npx cap add ios
+          echo "Syncing with Capacitor..."
+          npx cap sync ios
+      - name: Build iOS app
+        script: |
+          echo "Building iOS app with Xcode..."
+          xcode-project build-ipa \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App" \
+            --archive-flags="-destination 'generic/platform=iOS'"
       - name: Lint and validate
         script: |
           echo "Linting and validation completed"
     artifacts:
+      - ios/App/build/Build/Products/Release-iphoneos/*.ipa
+      - ios/App/build/Build/Products/Release-iphoneos/*.app
       - dist/**
       - build/**
     publishing:
