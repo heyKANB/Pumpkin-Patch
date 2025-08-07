@@ -31,7 +31,8 @@ workflows:
           npm ci
       - name: Type check
         script: |
-          npx tsc --noEmit
+          # TypeScript is in devDependencies, use it directly from node_modules
+          ./node_modules/.bin/tsc --noEmit
       - name: Build application
         script: |
           npm run build
