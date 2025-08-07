@@ -117,6 +117,9 @@ workflows:
         script: |
           echo "Linting and validation completed"
     artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Logs/Build/*.xcactivitylog
       - ios/App/build/Build/Products/Release-iphoneos/*.ipa
       - ios/App/build/Build/Products/Release-iphoneos/*.app
       - dist/**
