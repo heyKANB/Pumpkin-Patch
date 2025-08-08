@@ -489,22 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate new daily challenges
-  app.post("/api/challenges/generate", async (req, res) => {
-    try {
-      const { playerId } = req.body;
-      
-      await storage.generateDailyChallenges(playerId);
-      const challenges = await storage.getPlayerChallenges(playerId);
-      
-      res.json({ 
-        challenges,
-        message: "New daily challenges generated!"
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to generate challenges" });
-    }
-  });
+
 
   const httpServer = createServer(app);
   return httpServer;

@@ -15,9 +15,7 @@ import {
   ChefHat, 
   TrendingUp, 
   Expand, 
-  Calendar,
-  Gift,
-  Zap
+  Gift
 } from "lucide-react";
 
 interface ChallengePanelProps {
@@ -48,28 +46,7 @@ export function ChallengePanel({ playerId }: ChallengePanelProps) {
     refetchInterval: 2000, // Refresh every 2 seconds to show real-time progress
   });
 
-  const generateChallengesMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/challenges/generate", {
-        playerId,
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "challenges"] });
-      toast({
-        title: "New Challenges! 🎯",
-        description: data.message || "Fresh challenges are ready for you!",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate challenges",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const activeChallenges = challenges.filter(c => c.status === "active");
   const completedChallenges = challenges.filter(c => c.status === "completed");
@@ -136,32 +113,16 @@ export function ChallengePanel({ playerId }: ChallengePanelProps) {
               {activeChallenges.length} Active
             </Badge>
           </CardTitle>
-          <Button
-            onClick={() => generateChallengesMutation.mutate()}
-            disabled={generateChallengesMutation.isPending}
-            size="sm"
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            {generateChallengesMutation.isPending ? "Generating..." : "New Daily"}
-          </Button>
+
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {activeChallenges.length === 0 && completedChallenges.length === 0 ? (
           <div className="text-center py-8">
             <Target className="h-12 w-12 mx-auto mb-4 text-amber-400" />
-            <p className="text-amber-700 dark:text-amber-300 mb-4">
-              No challenges available. Generate your daily challenges!
+            <p className="text-amber-700 dark:text-amber-300">
+              New daily challenges will be available tomorrow!
             </p>
-            <Button
-              onClick={() => generateChallengesMutation.mutate()}
-              disabled={generateChallengesMutation.isPending}
-              className="bg-amber-600 hover:bg-amber-700 text-white"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Start Your Journey
-            </Button>
           </div>
         ) : (
           <>
