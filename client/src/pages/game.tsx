@@ -59,9 +59,6 @@ export default function Game() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
       
-      // Update plant challenge progress
-      updateChallengeProgress("daily-plant", 1);
-      
       toast({
         title: "Seed Planted! 🌱",
         description: data.message || "Your pumpkin will mature in 60 minutes",
@@ -87,9 +84,6 @@ export default function Game() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
-      
-      // Update harvest challenge progress
-      updateChallengeProgress("daily-harvest", 1);
       
       toast({
         title: "Pumpkin Harvested! 🎃",
