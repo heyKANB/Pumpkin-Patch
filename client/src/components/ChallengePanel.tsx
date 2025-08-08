@@ -45,6 +45,7 @@ export function ChallengePanel({ playerId }: ChallengePanelProps) {
 
   const { data: challenges = [], isLoading } = useQuery<SeasonalChallenge[]>({
     queryKey: ["/api/player", playerId, "challenges"],
+    refetchInterval: 2000, // Refresh every 2 seconds to show real-time progress
   });
 
   const generateChallengesMutation = useMutation({

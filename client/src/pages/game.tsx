@@ -531,7 +531,7 @@ export default function Game() {
                     {Array.from({ length: player?.fieldSize || 3 }, (_, row) =>
                       Array.from({ length: player?.fieldSize || 3 }, (_, col) => {
                         const plot = plots?.find(p => p.row === row && p.col === col);
-                        const emoji = plot ? getPlotEmoji(plot.state, plot.cropType) : null;
+                        const emoji = plot ? getPlotEmoji(plot.state, plot.cropType || "pumpkin") : null;
                         const styles = plot ? getPlotStyles(plot.state) : getPlotStyles("empty");
                         const timeRemaining = plot ? getTimeUntilMature(plot) : null;
                         

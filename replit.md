@@ -6,6 +6,7 @@ This is a web-based farming simulation game built with a full-stack architecture
 
 Preferred communication style: Simple, everyday language.
 Farmer's Bolt: User prefers to manually select which crop type to plant using a selection interface, while keeping automatic harvesting for mature crops.
+Challenge System: User requested seasonal mini-challenges with progressive difficulty - implemented with 5 challenge types (harvest, plant, bake, earn, expand) and real-time progress tracking.
 
 # System Architecture
 
