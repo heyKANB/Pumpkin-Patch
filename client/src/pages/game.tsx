@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
-import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat } from "lucide-react";
+import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat, Target } from "lucide-react";
 import Marketplace from "@/components/marketplace";
 import { Kitchen } from "@/components/kitchen";
+import { ChallengePanel } from "@/components/ChallengePanel";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
 import { RewardedAdButton } from "@/components/RewardedAdButton";
 import { useState } from "react";
@@ -18,7 +19,22 @@ export default function Game() {
   const { toast } = useToast();
   const [showMarketplace, setShowMarketplace] = useState(false);
   const [showKitchen, setShowKitchen] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
   const [selectedCropType, setSelectedCropType] = useState<"pumpkin" | "apple">("pumpkin");
+
+  // Challenge progress helper
+  const updateChallengeProgress = async (challengeId: string, progress: number) => {
+    try {
+      await apiRequest("POST", "/api/challenge/progress", {
+        playerId: PLAYER_ID,
+        challengeId,
+        progress
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/player", PLAYER_ID, "challenges"] });
+    } catch (error) {
+      console.log("Challenge progress update failed:", error);
+    }
+  };
 
   // Queries
   const { data: player, isLoading: playerLoading } = useQuery<Player>({
@@ -36,12 +52,16 @@ export default function Game() {
         playerId: PLAYER_ID,
         row,
         col,
-        cropType,
+        cropType: cropType || "pumpkin",
       });
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+      
+      // Update plant challenge progress
+      updateChallengeProgress("daily-plant", 1);
+      
       toast({
         title: "Seed Planted! 🌱",
         description: data.message || "Your pumpkin will mature in 60 minutes",
@@ -67,6 +87,10 @@ export default function Game() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+      
+      // Update harvest challenge progress
+      updateChallengeProgress("daily-harvest", 1);
+      
       toast({
         title: "Pumpkin Harvested! 🎃",
         description: data.message || "Added pumpkin to inventory",
@@ -585,6 +609,14 @@ export default function Game() {
                   </Button>
                   
                   <Button
+                    className="bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
+                    onClick={() => setShowChallenges(!showChallenges)}
+                  >
+                    <Target className="mr-2 h-4 w-4" />
+                    {showChallenges ? "Close Challenges" : "Open Challenges"}
+                  </Button>
+                  
+                  <Button
                     className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
                     onClick={() => expandMutation.mutate()}
                     disabled={expandMutation.isPending || !expansionCost || (player?.coins || 0) < expansionCost}
@@ -671,6 +703,13 @@ export default function Game() {
         {showKitchen && player && (
           <div className="mt-6">
             <Kitchen player={player} />
+          </div>
+        )}
+
+        {/* Challenges */}
+        {showChallenges && (
+          <div className="mt-6">
+            <ChallengePanel playerId={PLAYER_ID} />
           </div>
         )}
 

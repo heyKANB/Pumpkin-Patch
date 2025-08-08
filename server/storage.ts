@@ -1,4 +1,4 @@
-import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState, type Oven, type InsertOven, type OvenState } from "@shared/schema";
+import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState, type Oven, type InsertOven, type OvenState, type SeasonalChallenge, type InsertChallenge, type ChallengeStatus } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -19,6 +19,14 @@ export interface IStorage {
   createOven(oven: InsertOven): Promise<Oven>;
   updateOven(playerId: string, slotNumber: number, updates: Partial<Oven>): Promise<Oven | undefined>;
   
+  // Challenge operations
+  getPlayerChallenges(playerId: string): Promise<SeasonalChallenge[]>;
+  getChallenge(playerId: string, challengeId: string): Promise<SeasonalChallenge | undefined>;
+  createChallenge(challenge: InsertChallenge): Promise<SeasonalChallenge>;
+  updateChallenge(playerId: string, challengeId: string, updates: Partial<SeasonalChallenge>): Promise<SeasonalChallenge | undefined>;
+  updateChallengeProgress(playerId: string, challengeId: string, progress: number): Promise<SeasonalChallenge | undefined>;
+  generateDailyChallenges(playerId: string): Promise<void>;
+  
   // Game operations
   initializePlayerField(playerId: string): Promise<void>;
   initializePlayerKitchen(playerId: string): Promise<void>;
@@ -32,11 +40,13 @@ export class MemStorage implements IStorage {
   private players: Map<string, Player>;
   private plots: Map<string, Plot>;
   private ovens: Map<string, Oven>;
+  private challenges: Map<string, SeasonalChallenge>;
 
   constructor() {
     this.players = new Map();
     this.plots = new Map();
     this.ovens = new Map();
+    this.challenges = new Map();
     
     // Create default player for demo
     this.createDefaultPlayer();
@@ -51,6 +61,7 @@ export class MemStorage implements IStorage {
       appleSeeds: 0,
       apples: 0,
       pies: 0,
+      applePies: 0,
       fertilizer: 0,
       tools: 0,
       day: 1,
@@ -61,6 +72,7 @@ export class MemStorage implements IStorage {
     this.players.set("default", defaultPlayer);
     await this.initializePlayerField("default");
     await this.initializePlayerKitchen("default");
+    await this.generateDailyChallenges("default");
   }
 
   private getPlotKey(playerId: string, row: number, col: number): string {
@@ -81,6 +93,7 @@ export class MemStorage implements IStorage {
       appleSeeds: insertPlayer.appleSeeds ?? 0,
       apples: insertPlayer.apples ?? 0,
       pies: insertPlayer.pies ?? 0,
+      applePies: insertPlayer.applePies ?? 0,
       fertilizer: insertPlayer.fertilizer ?? 0,
       tools: insertPlayer.tools ?? 0,
       day: insertPlayer.day ?? 1,
@@ -290,7 +303,7 @@ export class MemStorage implements IStorage {
           playerId,
           slotNumber: slot,
           state: "empty",
-          pieType: null,
+          pieType: null as "pumpkin" | "apple" | null,
           startedAt: null,
         });
       }
@@ -326,7 +339,7 @@ export class MemStorage implements IStorage {
       playerId,
       slotNumber: newSlots - 1,
       state: "empty",
-      pieType: null,
+      pieType: null as "pumpkin" | "apple" | null,
       startedAt: null,
     });
 
@@ -424,7 +437,7 @@ export class MemStorage implements IStorage {
     // Update oven - reset to empty
     const updatedOven = await this.updateOven(playerId, slotNumber, {
       state: "empty",
-      pieType: null,
+      pieType: null as "pumpkin" | "apple" | null,
       startedAt: null,
     });
 
@@ -451,6 +464,173 @@ export class MemStorage implements IStorage {
       }
     }
   }
+
+  // Challenge operations
+  private getChallengeKey(playerId: string, challengeId: string): string {
+    return `${playerId}-${challengeId}`;
+  }
+
+  async getPlayerChallenges(playerId: string): Promise<SeasonalChallenge[]> {
+    return Array.from(this.challenges.values()).filter(challenge => challenge.playerId === playerId);
+  }
+
+  async getChallenge(playerId: string, challengeId: string): Promise<SeasonalChallenge | undefined> {
+    const key = this.getChallengeKey(playerId, challengeId);
+    return this.challenges.get(key);
+  }
+
+  async createChallenge(insertChallenge: InsertChallenge): Promise<SeasonalChallenge> {
+    const id = randomUUID();
+    const challenge: SeasonalChallenge = {
+      id,
+      ...insertChallenge,
+      createdAt: new Date(),
+    };
+    
+    const key = this.getChallengeKey(challenge.playerId, challenge.challengeId);
+    this.challenges.set(key, challenge);
+    return challenge;
+  }
+
+  async updateChallenge(playerId: string, challengeId: string, updates: Partial<SeasonalChallenge>): Promise<SeasonalChallenge | undefined> {
+    const key = this.getChallengeKey(playerId, challengeId);
+    const existing = this.challenges.get(key);
+    if (!existing) return undefined;
+
+    const updated = { ...existing, ...updates };
+    this.challenges.set(key, updated);
+    return updated;
+  }
+
+  async updateChallengeProgress(playerId: string, challengeId: string, progress: number): Promise<SeasonalChallenge | undefined> {
+    const challenge = await this.getChallenge(playerId, challengeId);
+    if (!challenge || challenge.status !== "active") return challenge;
+
+    const newProgress = Math.max(challenge.currentProgress, progress);
+    let updates: Partial<SeasonalChallenge> = { currentProgress: newProgress };
+
+    // Check if challenge is completed
+    if (newProgress >= challenge.targetValue) {
+      updates.status = "completed";
+      updates.completedAt = new Date();
+      
+      // Award rewards
+      const player = await this.getPlayer(playerId);
+      if (player && challenge.rewards) {
+        const playerUpdates: Partial<Player> = {};
+        if (challenge.rewards.coins) playerUpdates.coins = player.coins + challenge.rewards.coins;
+        if (challenge.rewards.seeds) playerUpdates.seeds = player.seeds + challenge.rewards.seeds;
+        if (challenge.rewards.pumpkins) playerUpdates.pumpkins = player.pumpkins + challenge.rewards.pumpkins;
+        if (challenge.rewards.apples) playerUpdates.apples = player.apples + challenge.rewards.apples;
+        if (challenge.rewards.fertilizer) playerUpdates.fertilizer = player.fertilizer + challenge.rewards.fertilizer;
+        if (challenge.rewards.tools) playerUpdates.tools = player.tools + challenge.rewards.tools;
+        
+        await this.updatePlayer(playerId, playerUpdates);
+      }
+    }
+
+    return await this.updateChallenge(playerId, challengeId, updates);
+  }
+
+  async generateDailyChallenges(playerId: string): Promise<void> {
+    const player = await this.getPlayer(playerId);
+    if (!player) return;
+
+    // Clear existing active challenges to avoid duplicates
+    const existingChallenges = await this.getPlayerChallenges(playerId);
+    for (const challenge of existingChallenges) {
+      if (challenge.status === "active") {
+        const key = this.getChallengeKey(playerId, challenge.challengeId);
+        this.challenges.delete(key);
+      }
+    }
+
+    // Generate new daily challenges based on player progress
+    const difficultyLevel = Math.min(5, Math.floor(player.day / 3) + 1);
+    const challengeTemplates = this.getChallengeTemplates(difficultyLevel);
+
+    for (const template of challengeTemplates) {
+      await this.createChallenge({
+        playerId,
+        challengeId: template.id,
+        title: template.title,
+        description: template.description,
+        type: template.type,
+        targetValue: template.targetValue,
+        currentProgress: 0,
+        rewards: template.rewards,
+        status: "active",
+        difficulty: difficultyLevel,
+        season: "autumn",
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        completedAt: null,
+      });
+    }
+  }
+
+  private getChallengeTemplates(difficulty: number) {
+    const baseTemplates: Array<{
+      id: string;
+      title: string;
+      description: string;
+      type: "harvest" | "plant" | "bake" | "earn" | "expand";
+      targetValue: number;
+      rewards: { coins?: number; seeds?: number; pumpkins?: number; apples?: number; fertilizer?: number; tools?: number };
+    }> = [
+      {
+        id: "daily-harvest",
+        title: "🎃 Autumn Harvest",
+        description: `Harvest ${difficulty * 2} crops today`,
+        type: "harvest",
+        targetValue: difficulty * 2,
+        rewards: { coins: difficulty * 20, seeds: difficulty * 2 }
+      },
+      {
+        id: "daily-plant",
+        title: "🌱 Planting Spree",
+        description: `Plant ${difficulty * 3} seeds today`,
+        type: "plant",
+        targetValue: difficulty * 3,
+        rewards: { coins: difficulty * 15, fertilizer: difficulty }
+      },
+      {
+        id: "daily-earn",
+        title: "💰 Coin Collector",
+        description: `Earn ${difficulty * 50} coins today`,
+        type: "earn",
+        targetValue: difficulty * 50,
+        rewards: { seeds: difficulty * 5, tools: 1 }
+      }
+    ];
+
+    if (difficulty >= 2) {
+      baseTemplates.push({
+        id: "daily-bake",
+        title: "🥧 Pie Master",
+        description: `Bake ${difficulty} pies today`,
+        type: "bake",
+        targetValue: difficulty,
+        rewards: { coins: difficulty * 30, pumpkins: difficulty * 2 }
+      });
+    }
+
+    if (difficulty >= 3) {
+      baseTemplates.push({
+        id: "daily-expand",
+        title: "🏗️ Farm Expansion",
+        description: "Expand your farm or kitchen",
+        type: "expand",
+        targetValue: 1,
+        rewards: { coins: difficulty * 100, fertilizer: difficulty * 3 }
+      });
+    }
+
+    // Return 3 random challenges for variety
+    return baseTemplates
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.min(3, baseTemplates.length));
+  }
 }
 
 export const storage = new MemStorage();
+

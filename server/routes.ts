@@ -12,6 +12,8 @@ import {
   collectPieSchema,
   expandKitchenSchema,
   rewardCoinsSchema,
+  completeChallengeSchema,
+  updateChallengeProgressSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
@@ -433,6 +435,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Challenge endpoints
+  // Get player challenges
+  app.get("/api/player/:id/challenges", async (req, res) => {
+    try {
+      const challenges = await storage.getPlayerChallenges(req.params.id);
+      res.json(challenges);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get challenges" });
+    }
+  });
+
+  // Update challenge progress
+  app.post("/api/challenge/progress", async (req, res) => {
+    try {
+      const { playerId, challengeId, progress } = updateChallengeProgressSchema.parse(req.body);
+      
+      const updatedChallenge = await storage.updateChallengeProgress(playerId, challengeId, progress);
+      if (!updatedChallenge) {
+        return res.status(404).json({ message: "Challenge not found" });
+      }
+
+      const player = await storage.getPlayer(playerId);
+      res.json({ 
+        challenge: updatedChallenge,
+        player: player,
+        message: updatedChallenge.status === "completed" ? "Challenge completed!" : "Progress updated!"
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Generate new daily challenges
+  app.post("/api/challenges/generate", async (req, res) => {
+    try {
+      const { playerId } = req.body;
+      
+      await storage.generateDailyChallenges(playerId);
+      const challenges = await storage.getPlayerChallenges(playerId);
+      
+      res.json({ 
+        challenges,
+        message: "New daily challenges generated!"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate challenges" });
     }
   });
 

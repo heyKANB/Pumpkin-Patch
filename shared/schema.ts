@@ -74,6 +74,51 @@ export const fertilizePlotSchema = z.object({
   col: z.number().min(0).max(9),
 });
 
+// Challenge system
+export const challengeTypes = ["harvest", "plant", "bake", "earn", "expand"] as const;
+export type ChallengeType = typeof challengeTypes[number];
+
+export const challengeStatus = ["active", "completed", "failed", "locked"] as const;
+export type ChallengeStatus = typeof challengeStatus[number];
+
+export const seasonalChallenges = pgTable("seasonal_challenges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  playerId: varchar("player_id").notNull(),
+  challengeId: varchar("challenge_id").notNull(), // unique identifier for challenge type
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  type: text("type").$type<ChallengeType>().notNull(),
+  targetValue: integer("target_value").notNull(), // target amount to achieve
+  currentProgress: integer("current_progress").notNull().default(0),
+  rewards: jsonb("rewards").$type<{coins?: number, seeds?: number, pumpkins?: number, apples?: number, fertilizer?: number, tools?: number}>().notNull(),
+  status: text("status").$type<ChallengeStatus>().notNull().default("active"),
+  difficulty: integer("difficulty").notNull().default(1), // 1-5 difficulty levels
+  season: text("season").notNull().default("autumn"), // autumn, winter, spring, summer
+  expiresAt: timestamp("expires_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertChallengeSchema = createInsertSchema(seasonalChallenges).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertChallenge = z.infer<typeof insertChallengeSchema>;
+export type SeasonalChallenge = typeof seasonalChallenges.$inferSelect;
+
+// Challenge action schemas
+export const completeChallengeSchema = z.object({
+  playerId: z.string(),
+  challengeId: z.string(),
+});
+
+export const updateChallengeProgressSchema = z.object({
+  playerId: z.string(),
+  challengeId: z.string(),
+  progress: z.number(),
+});
+
 export const ovenStates = ["empty", "baking", "ready"] as const;
 export type OvenState = typeof ovenStates[number];
 
