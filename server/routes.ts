@@ -90,6 +90,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedPlayer = await storage.getPlayer(playerId);
       const updatedPlots = await storage.getPlayerPlots(playerId);
 
+      // Update plant challenge progress
+      await storage.updateChallengeProgress(playerId, "daily-plant", 1);
+
       res.json({ 
         player: updatedPlayer, 
         plots: updatedPlots,
@@ -128,6 +131,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { pumpkins: player.pumpkins + 1 };
       
       await storage.updatePlayer(playerId, cropUpdate);
+
+      // Update harvest challenge progress
+      await storage.updateChallengeProgress(playerId, "daily-harvest", 1);
 
       const updatedPlayer = await storage.getPlayer(playerId);
       const updatedPlots = await storage.getPlayerPlots(playerId);
@@ -305,6 +311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updatePlayer(playerId, updates);
 
+      // Update earn coins challenge progress
+      await storage.updateChallengeProgress(playerId, "daily-earn", price);
+
       const updatedPlayer = await storage.getPlayer(playerId);
       res.json({ 
         player: updatedPlayer,
@@ -328,6 +337,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedPlayer = await storage.getPlayer(playerId);
       const updatedPlots = await storage.getPlayerPlots(playerId);
+
+      // Update expand challenge progress
+      await storage.updateChallengeProgress(playerId, "daily-expand", 1);
 
       res.json({ 
         player: updatedPlayer, 
@@ -382,6 +394,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { player, oven: updatedOven } = await storage.collectPie(playerId, slotNumber);
 
+      // Update bake challenge progress
+      await storage.updateChallengeProgress(playerId, "daily-bake", 1);
+
       res.json({ 
         player, 
         oven: updatedOven,
@@ -405,6 +420,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedPlayer = await storage.getPlayer(playerId);
+      
+      // Update expand challenge progress
+      await storage.updateChallengeProgress(playerId, "daily-expand", 1);
+      
       res.json({ 
         player: updatedPlayer, 
         message: result.message,

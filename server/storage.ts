@@ -506,7 +506,7 @@ export class MemStorage implements IStorage {
     const challenge = await this.getChallenge(playerId, challengeId);
     if (!challenge || challenge.status !== "active") return challenge;
 
-    const newProgress = Math.max(challenge.currentProgress, progress);
+    const newProgress = challenge.currentProgress + progress;
     let updates: Partial<SeasonalChallenge> = { currentProgress: newProgress };
 
     // Check if challenge is completed
