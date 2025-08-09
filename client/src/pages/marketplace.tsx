@@ -189,6 +189,30 @@ export default function Marketplace() {
     return false;
   };
 
+  const isItemLocked = (item: ShopItem): boolean => {
+    if (!player) return true;
+    
+    if (item.id === "apple-seeds") {
+      return player.level < 2;
+    }
+    
+    if (item.id === "kitchen-expansion") {
+      return player.level < 2;
+    }
+    
+    return false;
+  };
+
+  const getUnlockMessage = (item: ShopItem): string => {
+    if (item.id === "apple-seeds") {
+      return "Unlocks at Level 2";
+    }
+    if (item.id === "kitchen-expansion") {
+      return "Unlocks at Level 2";
+    }
+    return "";
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-100 dark:from-blue-950 dark:to-purple-950 flex items-center justify-center">
@@ -222,6 +246,9 @@ export default function Marketplace() {
           {/* Player stats */}
           {player && (
             <div className="flex items-center space-x-4 text-sm">
+              <div className="text-purple-600 dark:text-purple-400 flex items-center font-semibold">
+                ⭐ Level {player.level}
+              </div>
               <div className="text-yellow-600 dark:text-yellow-400 flex items-center">
                 <Coins className="w-4 h-4 mr-1" />
                 {player.coins}
@@ -229,9 +256,11 @@ export default function Marketplace() {
               <div className="text-green-600 dark:text-green-400">
                 🎃 {player.seeds}
               </div>
-              <div className="text-red-600 dark:text-red-400">
-                🍎 {player.appleSeeds}
-              </div>
+              {player.level >= 2 && (
+                <div className="text-red-600 dark:text-red-400">
+                  🍎 {player.appleSeeds}
+                </div>
+              )}
               <div className="text-blue-600 dark:text-blue-400">
                 🌱 {player.fertilizer}
               </div>
@@ -257,12 +286,16 @@ export default function Marketplace() {
             const price = getItemPrice(item);
             const affordable = canAfford(item);
             const maxed = isUpgradeMaxed(item);
+            const locked = isItemLocked(item);
+            const unlockMessage = getUnlockMessage(item);
             
             return (
-              <Card key={item.id} className="bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700 transition-all duration-300 hover:shadow-lg">
+              <Card key={item.id} className={`bg-white dark:bg-gray-800 border-2 transition-all duration-300 hover:shadow-lg ${
+                locked ? "border-gray-300 dark:border-gray-600 opacity-75" : "border-blue-200 dark:border-blue-700"
+              }`}>
                 <CardHeader className="text-center pb-3">
-                  <div className="text-4xl mb-2">{item.icon}</div>
-                  <CardTitle className="text-lg text-blue-800 dark:text-blue-200">
+                  <div className={`text-4xl mb-2 ${locked ? "grayscale" : ""}`}>{item.icon}</div>
+                  <CardTitle className={`text-lg ${locked ? "text-gray-500 dark:text-gray-400" : "text-blue-800 dark:text-blue-200"}`}>
                     {item.name}
                   </CardTitle>
                 </CardHeader>
@@ -272,28 +305,38 @@ export default function Marketplace() {
                     {item.description}
                   </p>
                   
-                  <div className="flex items-center justify-center mb-4">
-                    <Coins className="w-4 h-4 text-yellow-500 mr-1" />
-                    <span className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                      {price}
-                    </span>
-                  </div>
+                  {locked ? (
+                    <div className="mb-4">
+                      <div className="text-red-500 dark:text-red-400 font-semibold mb-2">
+                        🔒 {unlockMessage}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center mb-4">
+                      <Coins className="w-4 h-4 text-yellow-500 mr-1" />
+                      <span className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                        {price}
+                      </span>
+                    </div>
+                  )}
                   
                   <Button
                     className={`w-full ${
-                      affordable && !maxed
+                      locked
+                        ? "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
+                        : affordable && !maxed
                         ? "bg-blue-500 hover:bg-blue-600 text-white"
                         : "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
                     }`}
-                    disabled={!affordable || maxed || buyItemMutation.isPending}
-                    onClick={() => buyItemMutation.mutate(item.action)}
+                    disabled={locked || !affordable || maxed || buyItemMutation.isPending}
+                    onClick={() => !locked && buyItemMutation.mutate(item.action)}
                   >
                     {buyItemMutation.isPending ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     ) : (
                       <Package className="w-4 h-4 mr-2" />
                     )}
-                    {maxed ? "Maxed Out" : affordable ? "Purchase" : "Can't Afford"}
+                    {locked ? "Locked" : maxed ? "Maxed Out" : affordable ? "Purchase" : "Can't Afford"}
                   </Button>
                 </CardContent>
               </Card>

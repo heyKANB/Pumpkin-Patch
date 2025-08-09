@@ -59,10 +59,18 @@ export default function Game() {
       
       const growthTime = selectedCropType === "apple" ? "15 minutes" : "60 minutes";
       const cropName = selectedCropType === "apple" ? "apple tree" : "pumpkin";
-      toast({
-        title: "Seed Planted! 🌱",
-        description: data.message || `Your ${cropName} will mature in ${growthTime}`,
-      });
+      
+      if (data.leveledUp) {
+        toast({
+          title: `Level Up! 🌟`,
+          description: `${data.message}`,
+        });
+      } else {
+        toast({
+          title: "Seed Planted! 🌱",
+          description: data.message || `Your ${cropName} will mature in ${growthTime}`,
+        });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -85,10 +93,17 @@ export default function Game() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
       
-      toast({
-        title: "Harvest Complete! 🎃🍎",
-        description: data.message || "Added crop to inventory",
-      });
+      if (data.leveledUp) {
+        toast({
+          title: `Level Up! 🌟`,
+          description: `${data.message}`,
+        });
+      } else {
+        toast({
+          title: "Harvest Complete! 🎃🍎",
+          description: data.message || "Added crop to inventory",
+        });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -228,6 +243,16 @@ export default function Game() {
 
     // Automatically determine action based on plot state
     if (plot.state === "empty") {
+      // Check if crop type is unlocked
+      if (selectedCropType === "apple" && player.level < 2) {
+        toast({
+          title: "Apple Seeds Locked",
+          description: "Apple seeds unlock at Level 2! Keep growing pumpkins to level up.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Check if player has the selected seed type
       const hasSelectedSeeds = selectedCropType === "apple" ? 
         (player.appleSeeds > 0) : 
@@ -363,6 +388,16 @@ export default function Game() {
             </div>
 
             <div className="flex flex-wrap gap-4 lg:gap-6">
+              <div className="bg-purple-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-purple-500/50">
+                <div className="flex items-center gap-2">
+                  <div className="text-xl">⭐</div>
+                  <div>
+                    <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Level</p>
+                    <p className="text-lg font-bold text-cream">{player?.level || 1}</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="bg-golden/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-golden/50">
                 <div className="flex items-center gap-2">
                   <Coins className="text-golden text-xl" />
@@ -389,7 +424,7 @@ export default function Game() {
                 </div>
               </div>
 
-              {player && (player.appleSeeds || 0) > 0 && (
+              {player && player.level >= 2 && (
                 <div className="bg-red-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-red-500/50">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">🌳</div>
@@ -401,7 +436,7 @@ export default function Game() {
                 </div>
               )}
 
-              {player && (player.apples || 0) > 0 && (
+              {player && player.level >= 2 && (player.apples || 0) > 0 && (
                 <div className="bg-red-600/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-red-600/50">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">🍎</div>
@@ -633,21 +668,34 @@ export default function Game() {
                       </div>
                     </Button>
                     
-                    <Button
-                      onClick={() => setSelectedCropType("apple")}
-                      className={`flex items-center gap-2 ${
-                        selectedCropType === "apple" 
-                          ? "bg-red-600 hover:bg-red-700 text-white border-2 border-red-800" 
-                          : "bg-white hover:bg-red-50 text-dark-brown border-2 border-red-300"
-                      }`}
-                      disabled={player?.appleSeeds === 0}
-                    >
-                      <span className="text-lg">🍎</span>
-                      <div className="text-left">
-                        <div className="font-semibold">Apple Seeds</div>
-                        <div className="text-xs opacity-80">You have: {player?.appleSeeds || 0}</div>
-                      </div>
-                    </Button>
+                    {player && player.level >= 2 ? (
+                      <Button
+                        onClick={() => setSelectedCropType("apple")}
+                        className={`flex items-center gap-2 ${
+                          selectedCropType === "apple" 
+                            ? "bg-red-600 hover:bg-red-700 text-white border-2 border-red-800" 
+                            : "bg-white hover:bg-red-50 text-dark-brown border-2 border-red-300"
+                        }`}
+                        disabled={player?.appleSeeds === 0}
+                      >
+                        <span className="text-lg">🍎</span>
+                        <div className="text-left">
+                          <div className="font-semibold">Apple Seeds</div>
+                          <div className="text-xs opacity-80">You have: {player?.appleSeeds || 0}</div>
+                        </div>
+                      </Button>
+                    ) : (
+                      <Button
+                        className="flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-400"
+                        disabled={true}
+                      >
+                        <span className="text-lg grayscale">🍎</span>
+                        <div className="text-left">
+                          <div className="font-semibold">Apple Seeds</div>
+                          <div className="text-xs opacity-80">🔒 Unlocks at Level 2</div>
+                        </div>
+                      </Button>
+                    )}
                   </div>
                   <div className="mt-3 text-sm text-dark-brown/70">
                     Selected: <span className="font-semibold text-dark-brown">

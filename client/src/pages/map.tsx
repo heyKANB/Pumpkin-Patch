@@ -2,6 +2,10 @@ import { Link } from "wouter";
 import { Sprout, ChefHat, ShoppingCart, Store, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { type Player } from "@shared/schema";
+
+const PLAYER_ID = "default";
 
 interface MapLocation {
   id: string;
@@ -11,6 +15,7 @@ interface MapLocation {
   route: string;
   available: boolean;
   position: { x: number; y: number };
+  levelRequired?: number;
 }
 
 const mapLocations: MapLocation[] = [
@@ -30,7 +35,8 @@ const mapLocations: MapLocation[] = [
     icon: ChefHat,
     route: "/kitchen",
     available: true,
-    position: { x: 70, y: 30 }
+    position: { x: 70, y: 30 },
+    levelRequired: 2
   },
   {
     id: "marketplace",
@@ -53,6 +59,15 @@ const mapLocations: MapLocation[] = [
 ];
 
 export default function Map() {
+  const { data: player } = useQuery<Player>({
+    queryKey: ["/api/player", PLAYER_ID],
+  });
+
+  const isLocationUnlocked = (location: MapLocation): boolean => {
+    if (!location.levelRequired) return location.available;
+    if (!player) return false;
+    return player.level >= location.levelRequired && location.available;
+  };
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-800 via-amber-900 to-orange-800 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950 relative overflow-hidden">
       {/* Mountain Silhouettes */}
@@ -104,8 +119,24 @@ export default function Map() {
       </div>
       {/* Header */}
       <div className="relative z-10 text-center py-8">
-        <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">🍂 Pumpkin Patch Valley 🍂</h1>
-        <p className="text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg">Grow pumpkins and offer fall flavored goodies to make your Pumpkin Patch the most popular one in the valley!</p>
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1"></div>
+          <div className="flex-1 text-center">
+            <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">🍂 Pumpkin Patch Valley 🍂</h1>
+            <p className="text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg">Grow pumpkins and offer fall flavored goodies to make your Pumpkin Patch the most popular one in the valley!</p>
+          </div>
+          {player && (
+            <div className="flex-1 flex justify-end">
+              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-amber-400">
+                <div className="text-center">
+                  <div className="text-2xl mb-1">⭐</div>
+                  <div className="text-amber-100 font-bold text-lg">Level {player.level}</div>
+                  <div className="text-amber-300 text-sm">{player.experience} XP</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       {/* Map Container */}
       <div className="relative z-10 mx-auto max-w-7xl h-[500px] px-4">
@@ -247,9 +278,60 @@ export default function Map() {
 
           {/* Location Icons - Kitchen */}
           <div className="absolute" style={{ left: '70%', top: '25%' }}>
-            <div className="group cursor-pointer">
-              <Link href="/kitchen">
-                <div className="relative transform hover:scale-105 transition-all duration-300">
+            <div className={`group ${isLocationUnlocked(mapLocations[1]) ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+              {isLocationUnlocked(mapLocations[1]) ? (
+                <Link href="/kitchen">
+                  <div className="relative transform hover:scale-105 transition-all duration-300">
+                    {/* Kitchen Building Complex */}
+                    <div className="relative">
+                      {/* Main kitchen house */}
+                      <div className="w-28 h-24 bg-amber-700 rounded-t-lg relative shadow-2xl border-2 border-amber-800">
+                        {/* Roof with shingles */}
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[16px] border-r-[16px] border-b-[12px] border-transparent border-b-amber-900"></div>
+                        <div className="absolute -top-1 left-2 right-2 h-4 bg-amber-800 rounded-t-lg opacity-80"></div>
+                        
+                        {/* Windows with warm glow */}
+                        <div className="absolute top-4 left-3 w-5 h-5 bg-orange-300 rounded border-2 border-orange-600 shadow-inner">
+                          <div className="absolute inset-0.5 bg-yellow-200 rounded opacity-80"></div>
+                        </div>
+                        <div className="absolute top-4 right-3 w-5 h-5 bg-orange-300 rounded border-2 border-orange-600 shadow-inner">
+                          <div className="absolute inset-0.5 bg-yellow-200 rounded opacity-80"></div>
+                        </div>
+                        
+                        {/* Door */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-12 bg-orange-900 rounded-t-lg border border-orange-800">
+                          <div className="absolute top-4 right-1 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                        </div>
+                        
+                        {/* Chimney with detailed smoke */}
+                        <div className="absolute -top-8 right-3 w-3 h-8 bg-gray-700 shadow-lg rounded-t-sm border border-gray-800"></div>
+                        <div className="absolute -top-12 right-2 text-lg opacity-80 animate-pulse">💨</div>
+                        <div className="absolute -top-14 right-1 text-sm opacity-60 animate-pulse">💨</div>
+                        <div className="absolute -top-16 right-3 text-xs opacity-40 animate-pulse">💨</div>
+                      </div>
+                      
+                      {/* Outdoor brick oven */}
+                      <div className="absolute -left-6 bottom-2 w-10 h-8 bg-red-800 rounded-t-full shadow-lg border border-red-900">
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-3 bg-black rounded-t-lg opacity-60"></div>
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-xs opacity-60">🔥</div>
+                      </div>
+                      
+                      {/* Kitchen garden */}
+                      <div className="absolute -right-8 bottom-0 w-10 h-8 bg-green-700 rounded shadow-md">
+                        <div className="absolute inset-1 text-xs opacity-80">🌿</div>
+                        <div className="absolute top-1 right-1 text-xs">🍅</div>
+                        <div className="absolute bottom-1 left-1 text-xs">🥕</div>
+                      </div>
+                      
+                      {/* Label */}
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">
+                        🍳 Kitchen
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="relative transform hover:scale-105 transition-all duration-300 opacity-60">
                   {/* Kitchen Building Complex */}
                   <div className="relative">
                     {/* Main kitchen house */}
@@ -292,10 +374,19 @@ export default function Map() {
                     </div>
                     
                     {/* Label */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">Kitchen</div>
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">
+                      🍳 Kitchen (Level 2 Required)
+                    </div>
+                    
+                    {/* Lock overlay for level 1 players */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-t-lg">
+                      <div className="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-lg transform rotate-12 border border-red-700">
+                        🔒 LEVEL 2
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </Link>
+              )}
             </div>
           </div>
 

@@ -94,10 +94,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update plant challenge progress
       await storage.updateChallengeProgress(playerId, "daily-plant", 1);
 
+      // Gain experience for planting (5 XP per plant)
+      const expResult = await storage.gainExperience(playerId, 5);
+
+      const message = expResult.leveledUp ? 
+        `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} seed planted! Leveled up to ${expResult.newLevel}!` :
+        `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} seed planted successfully!`;
+
       res.json({ 
-        player: updatedPlayer, 
+        player: expResult.player, 
         plots: updatedPlots,
-        message: `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} seed planted successfully!`
+        message,
+        leveledUp: expResult.leveledUp,
+        newLevel: expResult.newLevel
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -136,14 +145,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update harvest challenge progress
       await storage.updateChallengeProgress(playerId, "daily-harvest", 1);
 
-      const updatedPlayer = await storage.getPlayer(playerId);
+      // Gain experience for harvesting (10 XP per harvest)
+      const expResult = await storage.gainExperience(playerId, 10);
       const updatedPlots = await storage.getPlayerPlots(playerId);
 
       const cropName = plot.cropType === "apple" ? "Apple" : "Pumpkin";
+      const message = expResult.leveledUp ? 
+        `${cropName} harvested! Leveled up to ${expResult.newLevel}!` :
+        `${cropName} harvested!`;
+
       res.json({ 
-        player: updatedPlayer, 
+        player: expResult.player, 
         plots: updatedPlots,
-        message: `${cropName} harvested!`
+        message,
+        leveledUp: expResult.leveledUp,
+        newLevel: expResult.newLevel
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -205,6 +221,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const player = await storage.getPlayer(playerId);
       if (!player) {
         return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Check level restrictions
+      if (item === "apple-seeds" && player.level < 2) {
+        return res.status(400).json({ message: "Apple seeds unlock at level 2!" });
       }
 
       let cost = 0;

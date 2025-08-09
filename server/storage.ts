@@ -34,6 +34,10 @@ export interface IStorage {
   updatePieBaking(): Promise<void>;
   expandPlayerField(playerId: string): Promise<{ success: boolean; message: string; cost?: number }>;
   expandPlayerKitchen(playerId: string): Promise<{ success: boolean; message: string; cost?: number }>;
+  
+  // Level system
+  gainExperience(playerId: string, xp: number): Promise<{ player: Player; leveledUp: boolean; newLevel?: number }>;
+  checkLevelUnlocks(player: Player): { appleSeeds: boolean; kitchen: boolean };
 }
 
 export class MemStorage implements IStorage {
@@ -55,10 +59,12 @@ export class MemStorage implements IStorage {
   private async createDefaultPlayer() {
     const defaultPlayer: Player = {
       id: "default",
+      level: 1,
+      experience: 0,
       coins: 25,
       seeds: 3,
       pumpkins: 0,
-      appleSeeds: 3,
+      appleSeeds: 0, // Start with 0 apple seeds - unlock at level 2
       apples: 0,
       pies: 0,
       applePies: 0,
@@ -67,6 +73,7 @@ export class MemStorage implements IStorage {
       day: 1,
       fieldSize: 3,
       kitchenSlots: 1,
+      kitchenUnlocked: 0, // Start locked, unlock at level 2
       lastUpdated: new Date(),
     };
     this.players.set("default", defaultPlayer);
@@ -671,6 +678,51 @@ export class MemStorage implements IStorage {
     return baseTemplates
       .sort(() => Math.random() - 0.5)
       .slice(0, Math.min(3, baseTemplates.length));
+  }
+
+  // Level system implementation
+  async gainExperience(playerId: string, xp: number): Promise<{ player: Player; leveledUp: boolean; newLevel?: number }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      throw new Error("Player not found");
+    }
+
+    const newExperience = player.experience + xp;
+    const currentLevel = player.level;
+    
+    // Calculate level from experience (100 XP per level)
+    const newLevel = Math.floor(newExperience / 100) + 1;
+    const leveledUp = newLevel > currentLevel;
+
+    // Update player with new experience and level
+    const updates: Partial<Player> = {
+      experience: newExperience,
+      level: newLevel,
+    };
+
+    // Unlock features based on new level
+    if (leveledUp && newLevel >= 2) {
+      // Unlock apple seeds and kitchen at level 2
+      updates.kitchenUnlocked = 1;
+      if (player.appleSeeds === 0) {
+        updates.appleSeeds = 3; // Give starting apple seeds
+      }
+    }
+
+    const updatedPlayer = await this.updatePlayer(playerId, updates);
+    
+    return {
+      player: updatedPlayer!,
+      leveledUp,
+      newLevel: leveledUp ? newLevel : undefined
+    };
+  }
+
+  checkLevelUnlocks(player: Player): { appleSeeds: boolean; kitchen: boolean } {
+    return {
+      appleSeeds: player.level >= 2,
+      kitchen: player.level >= 2
+    };
   }
 }
 

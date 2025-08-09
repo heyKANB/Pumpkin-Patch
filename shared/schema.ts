@@ -5,9 +5,11 @@ import { z } from "zod";
 
 export const players = pgTable("players", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  coins: integer("coins").notNull().default(150),
-  seeds: integer("seeds").notNull().default(25),
-  pumpkins: integer("pumpkins").notNull().default(8),
+  level: integer("level").notNull().default(1),
+  experience: integer("experience").notNull().default(0),
+  coins: integer("coins").notNull().default(25),
+  seeds: integer("seeds").notNull().default(3),
+  pumpkins: integer("pumpkins").notNull().default(0),
   appleSeeds: integer("apple_seeds").notNull().default(0),
   apples: integer("apples").notNull().default(0),
   pies: integer("pies").notNull().default(0),
