@@ -1,144 +1,55 @@
 workflows:
-  pumpkin-patch-game:
-    name: Pumpkin Patch Game Build
-    max_build_duration: 60
+  ios-workflow:
+    name: iOS Workflow
+    max_build_duration: 120
     instance_type: mac_mini_m1
     integrations:
-      app_store_connect: Apple Connect App Mgr
+      app_store_connect: codemagic
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.huntergames.pumpkinpatch
-      groups:
-        - production
-      node: 20.19.0
-      npm: 10.9.0
+        provisioning_profiles:
+          - PumpkinPatch2
       vars:
-        NODE_ENV: production
-        Bundle_ID: "com.huntergames.pumpkinpatch"
-        Apple_ID: "6749664824"
-        App_Store_Connect_Key_ID: "7629KQWD3Z"
+        APP_STORE_APPLE_ID: 6749664824
+        BUNDLE_ID: "com.huntergames.pumpkinpatch"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_Scheme: "App"
-        Code_Sign_Identity: "Apple Distribution"
-    cache:
-      cache_paths:
-        - $CM_BUILD_DIR/node_modules
-    triggering:
-      events:
-        - push
-        - tag
-        - pull_request
-      branch_patterns:
-        - pattern: main
-          include: true
-          source: true
-        - pattern: develop
-          include: true
-          source: true
+        XCODE_SCHEME: "App"
+      node: 18.17.0
+      xcode: latest
+      cocoapods: default
     scripts:
-      - name: Install dependencies
+      - name: Install npm dependencies
         script: |
           npm ci
-          # Verify installations
-          echo "Node version: $(node --version)"
-          echo "NPM version: $(npm --version)"
-          echo "Dependencies installed successfully"
-      - name: Type check
+      - name: Install CocoaPods dependencies
         script: |
-          # Skip type checking for now as TypeScript is only needed for build
-          echo "Type checking skipped - handled during build process"
-      - name: Build application
+          cd ios/App && pod install
+      - name: Set up code signing settings on Xcode project
         script: |
-          # Build web app for mobile
-          echo "Building frontend for mobile..."
-          # Create dist/public directory first
-          mkdir -p dist/public
-          # Copy static assets and create a simple mobile-optimized build
-          echo "Creating mobile build..."
-          cp client/index.html dist/public/
-          # Create a simple mobile app shell
-          cat > dist/public/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-              <title>Pumpkin Patch</title>
-            </head>
-            <body>
-              <div id="root">
-                <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
-                  <h1>🎃 Pumpkin Patch</h1>
-                  <p>Autumn farming simulation game</p>
-                  <p>Loading...</p>
-                </div>
-              </div>
-            </body>
-          </html>
-          EOF
-          echo "Verifying build output..."
-          ls -la dist/public/
-          echo "Initializing Capacitor..."
-          # Initialize Capacitor with updated bundle ID
-          npx --yes @capacitor/cli@latest init "Pumpkin Patch" "com.huntergames.pumpkinpatch" --web-dir="dist/public"
-          echo "Adding iOS platform..."
-          npx --yes @capacitor/cli@latest add ios
-          echo "Syncing with Capacitor..."
-          npx --yes @capacitor/cli@latest sync ios
-          echo "Configuring iOS project for CodeMagic automatic signing..."
-          # Configure for automatic code signing with CodeMagic
-          sed -i '' 's/CODE_SIGN_STYLE = Manual;/CODE_SIGN_STYLE = Automatic;/g' ios/App/App.xcodeproj/project.pbxproj
-          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = ".*";/PRODUCT_BUNDLE_IDENTIFIER = "com.huntergames.pumpkinpatch";/g' ios/App/App.xcodeproj/project.pbxproj
-          # Remove all manual provisioning settings to force automatic
-          sed -i '' '/PROVISIONING_PROFILE_SPECIFIER/d' ios/App/App.xcodeproj/project.pbxproj
-          sed -i '' '/PROVISIONING_PROFILE =/d' ios/App/App.xcodeproj/project.pbxproj
-          sed -i '' '/CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]/d' ios/App/App.xcodeproj/project.pbxproj
-          # Ensure automatic signing for all configurations
-          sed -i '' 's/ProvisioningStyle = Manual;/ProvisioningStyle = Automatic;/g' ios/App/App.xcodeproj/project.pbxproj
-          # Let CodeMagic handle the team assignment automatically
-          echo "iOS project configured for CodeMagic automatic provisioning"
-      - name: Build iOS app
+          xcode-project use-profiles
+      - name: Build ipa for distribution
         script: |
-          echo "Creating export options..."
-          cat > export_options.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store</string>
-              <key>uploadBitcode</key>
-              <false/>
-              <key>uploadSymbols</key>
-              <true/>
-              <key>compileBitcode</key>
-              <false/>
-          </dict>
-          </plist>
-          EOF
-          echo "Building iOS app with Xcode..."
           xcode-project build-ipa \
-            --workspace "ios/App/App.xcworkspace" \
-            --scheme "App" \
-            --export-options-plist "export_options.plist"
-      - name: Lint and validate
-        script: |
-          echo "Linting and validation completed"
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Logs/Build/*.xcactivitylog
-      - ios/App/build/Build/Products/Release-iphoneos/*.ipa
-      - ios/App/build/Build/Products/Release-iphoneos/*.app
-      - dist/**
-      - build/**
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: false
       app_store_connect:
-        auth: integration
         key_id: 7629KQWD3Z
         issuer_id: 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
-        # Apple ID email for App Store Connect authentication
-        apple_id: Kathryn.new@hotmail.com
-        submit_to_testflight: true
-        submit_to_app_store: false  # Set to true when ready for App Store release
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        submit_to_app_store: true
+        release_type: AFTER_APPROVAL
+        copyright: 2025 Hunter Games

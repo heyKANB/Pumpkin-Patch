@@ -89,4 +89,11 @@ Challenge System: User requested seasonal mini-challenges with progressive diffi
 - **Google AdSense**: Integrated with app ID ca-app-pub-8626828126160251~5550874760 and ad unit ID ca-app-pub-8626828126160251/3935359007
 - **AdBanner Component**: Reusable ad component with header, sidebar, and footer configurations
 - **Strategic Ad Placement**: Header ads after navigation, footer ads at content end
-- **iOS Distribution**: Bundle ID com.huntergames.pumpkinpatch with "Apple Connect App Mgr" integration and "PumpkinPatch2" provisioning profile for App Store Connect (App ID: 6749664824, Key ID: 7629KQWD3Z, Issuer ID: 27cc409c-83b9-4d67-a87f-99fc3d7c6f07)
+
+## iOS Distribution Configuration
+- **Bundle ID**: com.huntergames.pumpkinpatch
+- **Apple ID**: 6749664824
+- **App Store Connect API**: Key ID 7629KQWD3Z, Issuer ID 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
+- **Provisioning Profile**: PumpkinPatch2
+- **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type
+- **Copyright**: 2025 Hunter Games
