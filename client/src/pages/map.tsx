@@ -107,9 +107,7 @@ export default function Map() {
         <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">
           🍂 Smokey Mountain Valley 🍂
         </h1>
-        <p className="text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg">
-          Journey through the autumn harvest lands
-        </p>
+        <p className="text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg">Grow pumpkins and offer fall flavored goodies to make your Pumpkin Patch the most popular one in the valley!</p>
       </div>
       {/* Map Container */}
       <div className="relative z-10 mx-auto max-w-7xl h-[500px] px-4">
