@@ -97,3 +97,6 @@ Challenge System: User requested seasonal mini-challenges with progressive diffi
 - **Provisioning Profile**: PumpkinPatch2
 - **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type
 - **Copyright**: 2025 Hunter Games
+- **Capacitor Configuration**: Fixed webDir path to 'dist/public', iOS scheme settings, and splash screen configuration
+- **Build Process**: Enhanced with proper asset building, error handling, and verification steps
+- **White Screen Fix**: Added comprehensive error handling in main.tsx and improved iOS compatibility settings
