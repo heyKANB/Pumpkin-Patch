@@ -21,6 +21,15 @@ workflows:
       - name: Install npm dependencies
         script: |
           npm ci
+      - name: Build web app
+        script: |
+          npm run build
+      - name: Initialize Capacitor iOS platform
+        script: |
+          npx cap add ios
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
       - name: Install CocoaPods dependencies
         script: |
           cd ios/App && pod install
