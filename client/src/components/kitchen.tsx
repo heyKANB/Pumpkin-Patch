@@ -24,7 +24,8 @@ export function Kitchen({ player }: KitchenProps) {
 
   const bakeMutation = useMutation({
     mutationFn: async (slotNumber: number) => {
-      return apiRequest('/api/bake', 'POST', { playerId: 'default', slotNumber, pieType: selectedPieType });
+      const response = await apiRequest('POST', '/api/bake', { playerId: 'default', slotNumber, pieType: selectedPieType });
+      return response.json();
     },
     onSuccess: (data: any) => {
       toast({ title: "Success", description: data.message });
@@ -38,7 +39,8 @@ export function Kitchen({ player }: KitchenProps) {
 
   const collectMutation = useMutation({
     mutationFn: async (slotNumber: number) => {
-      return apiRequest('/api/collect-pie', 'POST', { playerId: 'default', slotNumber });
+      const response = await apiRequest('POST', '/api/collect-pie', { playerId: 'default', slotNumber });
+      return response.json();
     },
     onSuccess: (data: any) => {
       toast({ title: "Success", description: data.message });
@@ -52,7 +54,8 @@ export function Kitchen({ player }: KitchenProps) {
 
   const expandMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/expand-kitchen', 'POST', { playerId: 'default' });
+      const response = await apiRequest('POST', '/api/expand-kitchen', { playerId: 'default' });
+      return response.json();
     },
     onSuccess: (data: any) => {
       toast({ title: "Success", description: data.message });
