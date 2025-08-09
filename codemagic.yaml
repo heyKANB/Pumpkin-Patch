@@ -60,7 +60,7 @@ workflows:
       app_store_connect:
         key_id: 7629KQWD3Z
         issuer_id: 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        private_key: $APP_STORE_CONNECT_PRIVATE_KEY
         submit_to_app_store: true
         release_type: AFTER_APPROVAL
         copyright: 2025 Hunter Games
