@@ -102,7 +102,7 @@ Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds,
 - **Build Number**: 4
 - **App Store Connect API**: Key ID 7629KQWD3Z, Issuer ID 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
 - **Provisioning Profile**: PumpkinPatch2
-- **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type
+- **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type on Mac mini M2 instances
 - **Copyright**: 2025 Hunter Games
 - **Capacitor Configuration**: Fixed webDir path to 'dist/public', iOS scheme settings, and splash screen configuration
 - **Build Process**: Enhanced with proper asset building, error handling, and verification steps
