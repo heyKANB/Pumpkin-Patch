@@ -99,6 +99,7 @@ export class MemStorage implements IStorage {
       day: insertPlayer.day ?? 1,
       fieldSize: insertPlayer.fieldSize ?? 3,
       kitchenSlots: insertPlayer.kitchenSlots ?? 1,
+      kitchenUnlocked: insertPlayer.kitchenUnlocked ?? 0,
       lastUpdated: new Date(),
     };
     this.players.set(id, player);

@@ -17,6 +17,7 @@ export const players = pgTable("players", {
   day: integer("day").notNull().default(1),
   fieldSize: integer("field_size").notNull().default(3),
   kitchenSlots: integer("kitchen_slots").notNull().default(1),
+  kitchenUnlocked: integer("kitchen_unlocked").notNull().default(0), // 0 = locked, 1 = unlocked
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
 });
 
@@ -146,6 +147,10 @@ export const collectPieSchema = z.object({
 });
 
 export const expandKitchenSchema = z.object({
+  playerId: z.string(),
+});
+
+export const unlockKitchenSchema = z.object({
   playerId: z.string(),
 });
 

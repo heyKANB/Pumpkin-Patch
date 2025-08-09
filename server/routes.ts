@@ -11,6 +11,7 @@ import {
   startBakingSchema,
   collectPieSchema,
   expandKitchenSchema,
+  unlockKitchenSchema,
   rewardCoinsSchema,
   completeChallengeSchema,
   updateChallengeProgressSchema,
@@ -431,6 +432,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to expand kitchen" });
+    }
+  });
+
+  // Unlock kitchen
+  app.post("/api/unlock-kitchen", async (req, res) => {
+    try {
+      const { playerId } = unlockKitchenSchema.parse(req.body);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      if (player.kitchenUnlocked === 1) {
+        return res.status(400).json({ message: "Kitchen is already unlocked" });
+      }
+
+      const unlockCost = 250;
+      if (player.coins < unlockCost) {
+        return res.status(400).json({ message: "Not enough coins to unlock kitchen" });
+      }
+
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        coins: player.coins - unlockCost,
+        kitchenUnlocked: 1,
+      });
+
+      res.json({ 
+        player: updatedPlayer,
+        message: "Kitchen unlocked! You can now bake pies.",
+        cost: unlockCost
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to unlock kitchen" });
     }
   });
 
