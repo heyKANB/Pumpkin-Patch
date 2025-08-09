@@ -15,6 +15,7 @@ import {
   rewardCoinsSchema,
   completeChallengeSchema,
   updateChallengeProgressSchema,
+  unlockLevelSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
@@ -95,14 +96,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateChallengeProgress(playerId, "daily-plant", 1);
 
       // Gain experience for planting (5 XP per plant)
-      const expResult = await storage.gainExperience(playerId, 5);
+      const expResult = await storage.addExperience(playerId, 5);
 
       const message = expResult.leveledUp ? 
         `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} seed planted! Leveled up to ${expResult.newLevel}!` :
         `${cropType.charAt(0).toUpperCase() + cropType.slice(1)} seed planted successfully!`;
 
       res.json({ 
-        player: expResult.player, 
+        player: updatedPlayer, 
         plots: updatedPlots,
         message,
         leveledUp: expResult.leveledUp,
@@ -146,7 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateChallengeProgress(playerId, "daily-harvest", 1);
 
       // Gain experience for harvesting (10 XP per harvest)
-      const expResult = await storage.gainExperience(playerId, 10);
+      const expResult = await storage.addExperience(playerId, 10);
+      const updatedPlayer = await storage.getPlayer(playerId);
       const updatedPlots = await storage.getPlayerPlots(playerId);
 
       const cropName = plot.cropType === "apple" ? "Apple" : "Pumpkin";
@@ -155,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `${cropName} harvested!`;
 
       res.json({ 
-        player: expResult.player, 
+        player: updatedPlayer, 
         plots: updatedPlots,
         message,
         leveledUp: expResult.leveledUp,
@@ -210,6 +212,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Level unlocking route
+  app.post("/api/unlock-level", async (req, res) => {
+    try {
+      const unlockRequest = unlockLevelSchema.parse(req.body);
+      const result = await storage.unlockNextLevel(unlockRequest.playerId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -539,6 +552,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         challenge: updatedChallenge,
         player: player,
         message: updatedChallenge.status === "completed" ? "Challenge completed!" : "Progress updated!"
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // Unlock next level using tools
+  app.post("/api/unlock-level", async (req, res) => {
+    try {
+      const { playerId } = unlockLevelSchema.parse(req.body);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Check if player is level 10 or higher
+      if (player.level < 10) {
+        return res.json({ 
+          success: false, 
+          message: "You must be at least level 10 to use tools for leveling up!" 
+        });
+      }
+
+      // Check if player has tools
+      if (player.tools < 1) {
+        return res.json({ 
+          success: false, 
+          message: "You need at least 1 tool to unlock the next level! Earn tools through challenges." 
+        });
+      }
+
+      // Spend 1 tool and level up
+      await storage.updatePlayer(playerId, { 
+        tools: player.tools - 1,
+        level: player.level + 1 
+      });
+
+      const updatedPlayer = await storage.getPlayer(playerId);
+      res.json({ 
+        success: true,
+        message: `Level unlocked! Welcome to level ${player.level + 1}!`,
+        player: updatedPlayer
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });

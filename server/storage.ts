@@ -92,6 +92,8 @@ export class MemStorage implements IStorage {
     // Create default player if it doesn't exist
     if (!player && id === "default") {
       player = await this.createPlayer({
+        level: 1,
+        experience: 0,
         coins: 25,
         seeds: 3,
         pumpkins: 0,
@@ -121,6 +123,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const player: Player = { 
       id,
+      level: insertPlayer.level ?? 1,
+      experience: insertPlayer.experience ?? 0,
       coins: insertPlayer.coins ?? 25,
       seeds: insertPlayer.seeds ?? 3,
       pumpkins: insertPlayer.pumpkins ?? 0,
@@ -154,6 +158,82 @@ export class MemStorage implements IStorage {
     };
     this.players.set(id, updatedPlayer);
     return updatedPlayer;
+  }
+
+  // Level and experience management
+  async addExperience(playerId: string, amount: number): Promise<{ newLevel: number; leveledUp: boolean; experience: number }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) throw new Error("Player not found");
+
+    const newExperience = player.experience + amount;
+    const experiencePerLevel = 100;
+    
+    // After level 10, players can only advance with tools (manual unlock)
+    let newLevel = player.level;
+    if (player.level < 10) {
+      newLevel = Math.floor(newExperience / experiencePerLevel) + 1;
+    }
+    
+    const leveledUp = newLevel > player.level;
+
+    await this.updatePlayer(playerId, { 
+      experience: newExperience, 
+      level: newLevel 
+    });
+
+    return { newLevel, leveledUp, experience: newExperience };
+  }
+
+  async unlockNextLevel(playerId: string): Promise<{ success: boolean; newLevel: number; toolsRequired: number; message: string }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) throw new Error("Player not found");
+
+    // Only allow tool-based unlocking after level 10
+    if (player.level < 10) {
+      return { 
+        success: false, 
+        newLevel: player.level, 
+        toolsRequired: 0,
+        message: "Tool-based level unlocking is only available after level 10" 
+      };
+    }
+
+    // Calculate tools required (increases with level)
+    const toolsRequired = Math.max(1, (player.level - 9) * 2); // 2 tools for level 11, 4 for level 12, etc.
+    
+    if (player.tools < toolsRequired) {
+      return { 
+        success: false, 
+        newLevel: player.level, 
+        toolsRequired,
+        message: `Need ${toolsRequired} tools to unlock level ${player.level + 1}. You have ${player.tools} tools.` 
+      };
+    }
+
+    // Check if player has enough experience for the level
+    const experienceRequired = player.level * 100;
+    if (player.experience < experienceRequired) {
+      return { 
+        success: false, 
+        newLevel: player.level, 
+        toolsRequired,
+        message: `Need ${experienceRequired} XP to unlock level ${player.level + 1}. You have ${player.experience} XP.` 
+      };
+    }
+
+    // Unlock the level
+    const newLevel = player.level + 1;
+    await this.updatePlayer(playerId, { 
+      level: newLevel,
+      tools: player.tools - toolsRequired
+    });
+
+    return { 
+      success: true, 
+      newLevel, 
+      toolsRequired,
+      message: `Level ${newLevel} unlocked! Used ${toolsRequired} tools.` 
+    };
   }
 
   async getPlayerPlots(playerId: string): Promise<Plot[]> {
@@ -531,7 +611,10 @@ export class MemStorage implements IStorage {
       description: insertChallenge.description,
       targetValue: insertChallenge.targetValue,
       currentProgress: insertChallenge.currentProgress ?? 0,
-      rewards: insertChallenge.rewards,
+      rewards: insertChallenge.rewards as {coins?: number, seeds?: number, pumpkins?: number, apples?: number, fertilizer?: number, tools?: number},
+      difficulty: insertChallenge.difficulty ?? 1,
+      season: insertChallenge.season ?? "autumn",
+      expiresAt: insertChallenge.expiresAt ?? null,
       completedAt: insertChallenge.completedAt ?? null,
       createdAt: new Date(),
     };

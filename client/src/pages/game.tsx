@@ -232,6 +232,30 @@ export default function Game() {
     },
   });
 
+  const unlockLevelMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/unlock-level", {
+        playerId: PLAYER_ID,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+      toast({
+        title: data.success ? "Level Unlocked! 🌟" : "Cannot Unlock Level",
+        description: data.message,
+        variant: data.success ? "default" : "destructive",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to unlock level",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePlotClick = (row: number, col: number) => {
     if (!plots || !player) return;
     
@@ -394,6 +418,15 @@ export default function Game() {
                   <div>
                     <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Level</p>
                     <p className="text-lg font-bold text-cream">{player?.level || 1}</p>
+                    {player && player.level >= 10 && (
+                      <button
+                        onClick={() => unlockLevelMutation.mutate()}
+                        disabled={unlockLevelMutation.isPending || !player}
+                        className="mt-1 px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-500 text-white rounded disabled:opacity-50"
+                      >
+                        🔧 Use Tools to Level Up
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
