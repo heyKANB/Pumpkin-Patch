@@ -24,7 +24,7 @@ export function Kitchen({ player }: KitchenProps) {
 
   const bakeMutation = useMutation({
     mutationFn: async (slotNumber: number) => {
-      return apiRequest('/api/start-baking', 'POST', { playerId: 'default', slotNumber, pieType: selectedPieType });
+      return apiRequest('/api/bake', 'POST', { playerId: 'default', slotNumber, pieType: selectedPieType });
     },
     onSuccess: (data: any) => {
       toast({ title: "Success", description: data.message });
