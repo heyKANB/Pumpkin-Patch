@@ -14,6 +14,8 @@ workflows:
         BUNDLE_ID: "com.huntergames.pumpkinpatch"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
+        APP_VERSION: "1.1.0"
+        BUILD_NUMBER: "2"
       node: v20.18.0
       xcode: latest
       cocoapods: default
@@ -42,6 +44,10 @@ workflows:
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles
+      - name: Update version and build number
+        script: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \
