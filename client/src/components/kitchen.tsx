@@ -204,6 +204,12 @@ export function Kitchen({ player }: KitchenProps) {
         </div>
 
         {/* Oven Slots Grid */}
+        {/* Debug Info */}
+        <div className="text-xs text-cream/60 mb-2">
+          Debug: Kitchen slots: {player.kitchenSlots}, Ovens found: {ovens.length}, 
+          Oven slot numbers: [{ovens.map(o => o.slotNumber).join(', ')}]
+        </div>
+        
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: player.kitchenSlots }, (_, index) => {
             const oven = ovens.find(o => o.slotNumber === index);
@@ -212,15 +218,15 @@ export function Kitchen({ player }: KitchenProps) {
               return (
                 <div
                   key={index}
-                  className="aspect-square rounded-lg border-2 shadow-lg bg-gray-100 border-gray-300 flex flex-col items-center justify-center"
+                  className="aspect-square rounded-lg border-2 shadow-lg bg-red-100 border-red-300 flex flex-col items-center justify-center"
                 >
                   <span className="text-2xl">❌</span>
-                  <div className="text-xs text-gray-500">Error</div>
+                  <div className="text-xs text-red-600">Missing slot {index}</div>
                 </div>
               );
             }
             
-            const emoji = getOvenEmoji(oven.state, oven.pieType);
+            const emoji = getOvenEmoji(oven.state, oven.pieType || undefined);
             const styles = getOvenStyles(oven.state);
             const timeRemaining = getTimeRemaining(oven);
             
