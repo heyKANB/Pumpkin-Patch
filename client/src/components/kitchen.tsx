@@ -207,7 +207,18 @@ export function Kitchen({ player }: KitchenProps) {
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: player.kitchenSlots }, (_, index) => {
             const oven = ovens.find(o => o.slotNumber === index);
-            if (!oven) return null;
+            if (!oven) {
+              // Fallback for missing oven slot - should not happen normally
+              return (
+                <div
+                  key={index}
+                  className="aspect-square rounded-lg border-2 shadow-lg bg-gray-100 border-gray-300 flex flex-col items-center justify-center"
+                >
+                  <span className="text-2xl">❌</span>
+                  <div className="text-xs text-gray-500">Error</div>
+                </div>
+              );
+            }
             
             const emoji = getOvenEmoji(oven.state, oven.pieType);
             const styles = getOvenStyles(oven.state);
