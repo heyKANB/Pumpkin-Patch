@@ -104,9 +104,7 @@ export default function Map() {
       </div>
       {/* Header */}
       <div className="relative z-10 text-center py-8">
-        <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">
-          🍂 Smokey Mountain Valley 🍂
-        </h1>
+        <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">🍂 Pumpkin Patch Valley 🍂</h1>
         <p className="text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg">Grow pumpkins and offer fall flavored goodies to make your Pumpkin Patch the most popular one in the valley!</p>
       </div>
       {/* Map Container */}
