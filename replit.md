@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture. Players can plant multiple crop types (pumpkins and apples), grow diverse crops, and manage resources like coins, seeds, and harvested produce on a dynamic grid-based farm field. The game features real-time growth mechanics where crops take 60 minutes to mature, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing pumpkins into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization.
+This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization.
 
 # User Preferences
 
@@ -15,7 +15,8 @@ Challenge System: User requested seasonal mini-challenges with progressive diffi
 - **UI Library**: Shadcn/ui components built on Radix UI primitives for accessible, customizable components
 - **Styling**: Tailwind CSS with custom CSS variables for theming, featuring an autumn color palette
 - **State Management**: TanStack Query (React Query) for server state management with automatic caching and refetching
-- **Routing**: Wouter for lightweight client-side routing
+- **Routing**: Wouter for lightweight client-side routing with map-based navigation system
+- **Navigation**: Interactive map menu serving as main hub for accessing Farm Field, Kitchen, Marketplace, and Store Front areas
 - **Forms**: React Hook Form with Zod validation for type-safe form handling
 
 ## Backend Architecture
