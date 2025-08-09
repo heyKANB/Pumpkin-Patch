@@ -80,7 +80,34 @@ export class MemStorage implements IStorage {
   }
 
   async getPlayer(id: string): Promise<Player | undefined> {
-    return this.players.get(id);
+    let player = this.players.get(id);
+    
+    // Create default player if it doesn't exist
+    if (!player && id === "default") {
+      player = await this.createPlayer({
+        coins: 25,
+        seeds: 3,
+        pumpkins: 0,
+        appleSeeds: 3,
+        apples: 0,
+        pies: 0,
+        applePies: 0,
+        fertilizer: 0,
+        tools: 0,
+        day: 1,
+        fieldSize: 3,
+        kitchenSlots: 1,
+        kitchenUnlocked: 0,
+      });
+    }
+    
+    // Migration for existing players without kitchenUnlocked
+    if (player && (player as any).kitchenUnlocked === undefined) {
+      (player as any).kitchenUnlocked = 1; // Existing players get kitchen unlocked by default
+      this.players.set(id, player);
+    }
+    
+    return player;
   }
 
   async createPlayer(insertPlayer: InsertPlayer): Promise<Player> {
