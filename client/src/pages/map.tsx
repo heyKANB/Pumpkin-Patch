@@ -55,7 +55,6 @@ const mapLocations: MapLocation[] = [
 export default function Map() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-800 via-amber-900 to-orange-800 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950 relative overflow-hidden">
-      
       {/* Mountain Silhouettes */}
       <div className="absolute inset-0">
         <svg viewBox="0 0 1200 800" className="absolute inset-0 w-full h-full">
@@ -76,7 +75,6 @@ export default function Map() {
                 fill="rgba(34, 197, 94, 0.3)" />
         </svg>
       </div>
-
       {/* Autumn Forest */}
       <div className="absolute inset-0">
         {/* Dense forest background */}
@@ -97,7 +95,6 @@ export default function Map() {
         <div className="absolute bottom-28 right-1/4 w-18 h-38 bg-amber-800 rounded-t-full opacity-60 shadow-xl"></div>
         <div className="absolute bottom-12 right-1/3 w-12 h-28 bg-orange-800 rounded-t-full opacity-75 shadow-lg"></div>
       </div>
-
       {/* Floating autumn leaves */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 text-2xl animate-pulse">🍂</div>
@@ -105,7 +102,6 @@ export default function Map() {
         <div className="absolute top-32 left-1/2 text-lg animate-pulse">🍂</div>
         <div className="absolute top-60 right-1/4 text-2xl animate-bounce">🍁</div>
       </div>
-      
       {/* Header */}
       <div className="relative z-10 text-center py-8">
         <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">
@@ -115,7 +111,6 @@ export default function Map() {
           Journey through the autumn harvest lands
         </p>
       </div>
-
       {/* Map Container */}
       <div className="relative z-10 mx-auto max-w-7xl h-[500px] px-4">
         <div className="relative w-full h-full rounded-3xl overflow-hidden border-4 border-amber-600 shadow-2xl">
@@ -303,9 +298,7 @@ export default function Map() {
                     </div>
                     
                     {/* Label */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">
-                      👨‍🍳 Kitchen
-                    </div>
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">Kitchen</div>
                   </div>
                 </div>
               </Link>
@@ -447,7 +440,6 @@ export default function Map() {
           </div>
         </div>
       </div>
-
       {/* Valley footer */}
       <div className="relative z-10 text-center mt-8 pb-8">
         <p className="text-lg text-amber-200 dark:text-amber-100 drop-shadow-lg">
