@@ -255,7 +255,10 @@ export default function Game() {
       // For seedling and growing states, show info about when it will be ready
       const minutesPlanted = plot.plantedAt ? Math.floor((Date.now() - new Date(plot.plantedAt).getTime()) / (1000 * 60)) : 0;
       const effectiveMinutes = plot.fertilized ? minutesPlanted * 2 : minutesPlanted;
-      const minutesRemaining = Math.max(0, 60 - effectiveMinutes);
+      
+      // Different growth times based on crop type
+      const growthTime = plot.cropType === "apple" ? 15 : 60;
+      const minutesRemaining = Math.max(0, growthTime - effectiveMinutes);
       
       const cropName = plot.cropType === "apple" ? "apple" : "pumpkin";
       let statusMessage = `This ${cropName} will be ready to harvest in ${minutesRemaining} minutes`;
