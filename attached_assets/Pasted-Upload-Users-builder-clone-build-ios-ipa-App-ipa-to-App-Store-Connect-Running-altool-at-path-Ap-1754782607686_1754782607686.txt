@@ -1,0 +1,33 @@
+Upload "/Users/builder/clone/build/ios/ipa/App.ipa" to App Store Connect
+Running altool at path '/Applications/Xcode-16.4.app/Contents/SharedFrameworks/ContentDeliveryServices.framework/Frameworks/AppStoreService.framework/Support/altool'...
+Running altool at path '/Applications/Xcode-16.4.app/Contents/SharedFrameworks/ContentDeliveryServices.framework/Frameworks/AppStoreService.framework/Support/altool'...
+2025-08-09 23:35:57.703 ERROR: [altool.600002C64180] [ContentDelivery.Uploader.600002C64180] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘2’. (ID: 93f9a37e-595c-40f5-af33-00875827772a)
+{"tool-version":"8.303.16303","tool-path":"\/Applications\/Xcode-16.4.app\/Contents\/SharedFrameworks\/ContentDeliveryServices.framework\/Versions\/A\/Frameworks\/AppStoreService.framework","os-version":"15.5.0","product-errors":[{"message":"The provided entity includes an attribute with a value that has already been used","userInfo":{"NSUnderlyingError":"Error Domain=IrisAPI Code=-19241 \"The provided entity includes an attribute with a value that has already been used\" UserInfo={status=409, detail=The bundle version must be higher than the previously uploaded version., source={\n    pointer = \"\/data\/attributes\/cfBundleVersion\";\n}, id=93f9a37e-595c-40f5-af33-00875827772a, code=ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE, title=The provided entity includes an attribute with a value that has already been used, meta={\n    previousBundleVersion = 2;\n}, NSLocalizedDescription=The provided entity includes an attribute with a value that has already been used, NSLocalizedFailureReason=The bundle version must be higher than the previously uploaded version.}","NSLocalizedDescription":"The provided entity includes an attribute with a value that has already been used","previousBundleVersion":"2","iris-code":"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE","NSLocalizedFailureReason":"The bundle version must be higher than the previously uploaded version: ‘2’. (ID: 93f9a37e-595c-40f5-af33-00875827772a)"},"code":-19232}]}
+
+
+Failed to upload archive at "/Users/builder/clone/build/ios/ipa/App.ipa"
+Failed to publish /Users/builder/clone/build/ios/ipa/App.ipa
+
+Failed to publish App.ipa to App Store Connect.
+
+Build failed :|
+
+
+Publishing failed :|
+Failed to publish App.ipa to App Store Connect.
+
+Running altool at path '/Applications/Xcode-16.4.app/Contents/SharedFrameworks/ContentDeliveryServices.framework/Frameworks/AppStoreService.framework/Support/altool'...
+2025-08-09 23:35:57.703 ERROR: [altool.600002C64180] [ContentDelivery.Uploader.600002C64180] The provided entity includes an attribute with a value that has already been used (-19232) The bundle version must be higher than the previously uploaded version: ‘2’. (ID: 93f9a37e-595c-40f5-af33-00875827772a)
+{"tool-version":"8.303.16303","tool-path":"\/Applications\/Xcode-16.4.app\/Contents\/SharedFrameworks\/ContentDeliveryServices.framework\/Versions\/A\/Frameworks\/AppStoreService.framework","os-version":"15.5.0","product-errors":[{"message":"The provided entity includes an attribute with a value that has already been used","userInfo":{"NSUnderlyingError":"Error Domain=IrisAPI Code=-19241 \"The provided entity includes an attribute with a value that has already been used\" UserInfo={status=409, detail=The bundle version must be higher than the previously uploaded version., source={\n    pointer = \"\/data\/attributes\/cfBundleVersion\";\n}, id=93f9a37e-595c-40f5-af33-00875827772a, code=ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE, title=The provided entity includes an attribute with a value that has already been used, meta={\n    previousBundleVersion = 2;\n}, NSLocalizedDescription=The provided entity includes an attribute with a value that has already been used, NSLocalizedFailureReason=The bundle version must be higher than the previously uploaded version.}","NSLocalizedDescription":"The provided entity includes an attribute with a value that has already been used","previousBundleVersion":"2","iris-code":"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE","NSLocalizedFailureReason":"The bundle version must be higher than the previously uploaded version: ‘2’. (ID: 93f9a37e-595c-40f5-af33-00875827772a)"},"code":-19232}]}
+
+
+Failed to upload archive at "/Users/builder/clone/build/ios/ipa/App.ipa"
+Failed to publish /Users/builder/clone/build/ios/ipa/App.ipa
+
+Failed to publish App.ipa to App Store Connect.
+
+Build failed :|
+
+
+Publishing failed :|
+Failed to publish App.ipa to App Store Connect.

@@ -15,7 +15,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         APP_VERSION: "2.0.0"
-        BUILD_NUMBER: "3"
+        BUILD_NUMBER: "4"
       node: v20.18.0
       xcode: latest
       cocoapods: default
@@ -46,8 +46,12 @@ workflows:
           xcode-project use-profiles
       - name: Update version and build number
         script: |
+          echo "Setting version to $APP_VERSION and build number to $BUILD_NUMBER"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
+          echo "Verifying version numbers:"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios/App/App/Info.plist
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \
