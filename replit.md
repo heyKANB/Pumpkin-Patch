@@ -1,6 +1,6 @@
 # Overview
 
-This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization.
+This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game now features a map-style navigation system with an "autumn in the Smokey mountains" theme as the main menu hub. The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization.
 
 # User Preferences
 
