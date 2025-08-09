@@ -242,9 +242,7 @@ export default function Map() {
                     <div className="absolute -bottom-2 left-0 right-0 h-2 bg-amber-800 opacity-60 rounded"></div>
                     
                     {/* Label */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">
-                      🚜 Farm Field
-                    </div>
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">Farm</div>
                   </div>
                 </div>
               </Link>
