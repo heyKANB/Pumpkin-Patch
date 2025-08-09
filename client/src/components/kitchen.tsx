@@ -43,7 +43,12 @@ export function Kitchen({ player }: KitchenProps) {
       return response.json();
     },
     onSuccess: (data: any) => {
-      toast({ title: "Success", description: data.message });
+      const title = data.leveledUp ? "Level Up! 🌟" : "Success";
+      toast({ 
+        title, 
+        description: data.message,
+        duration: data.leveledUp ? 5000 : 3000
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/player/default'] });
       queryClient.invalidateQueries({ queryKey: ['/api/player/default/ovens'] });
     },
@@ -58,7 +63,12 @@ export function Kitchen({ player }: KitchenProps) {
       return response.json();
     },
     onSuccess: (data: any) => {
-      toast({ title: "Success", description: data.message });
+      const title = data.leveledUp ? "Level Up! 🌟" : "Success";
+      toast({ 
+        title, 
+        description: data.message,
+        duration: data.leveledUp ? 5000 : 3000
+      });
       // Force refetch all player-related queries
       queryClient.invalidateQueries({ queryKey: ['/api/player'] });
       queryClient.refetchQueries({ queryKey: ['/api/player/default'] });

@@ -198,9 +198,11 @@ export default function Game() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
+      const title = data.leveledUp ? "Level Up! 🌟" : "Field Expanded! 🎯";
       toast({
-        title: "Field Expanded! 🎯",
+        title,
         description: data.message,
+        duration: data.leveledUp ? 5000 : 3000,
       });
     },
     onError: (error: any) => {

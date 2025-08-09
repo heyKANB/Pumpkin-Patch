@@ -49,6 +49,8 @@ Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds,
 - **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with exponential cost scaling
 - **Kitchen Management**: Oven slots starting at 1, expandable to 5 with progressive cost increases (100, 200, 400, 800 coins)
 - **Enhancement System**: Fertilizer application for 2x growth speed with visual indicators
+- **Experience System**: Multi-activity XP progression (5 XP planting, 10 XP harvesting, 15 XP baking pies, 20 XP kitchen expansion, 25 XP field expansion)
+- **Level Progression**: Traditional XP-based leveling (100 XP per level) with feature unlocks, plus tool-based progression after level 10
 - **State Validation**: Comprehensive Zod schemas for runtime type checking and API request validation
 
 ## Development Tools

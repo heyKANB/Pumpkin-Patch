@@ -376,10 +376,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update expand challenge progress
       await storage.updateChallengeProgress(playerId, "daily-expand", 1);
 
+      // Gain experience for expanding field (25 XP per expansion)
+      const expResult = await storage.addExperience(playerId, 25);
+      const finalPlayer = await storage.getPlayer(playerId);
+
+      const message = expResult.leveledUp ? 
+        `${result.message} Leveled up to ${expResult.newLevel}!` :
+        result.message;
+
       res.json({ 
-        player: updatedPlayer, 
+        player: finalPlayer, 
         plots: updatedPlots,
-        message: result.message
+        message,
+        leveledUp: expResult.leveledUp,
+        newLevel: expResult.newLevel
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -432,10 +442,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update bake challenge progress
       await storage.updateChallengeProgress(playerId, "daily-bake", 1);
 
+      // Gain experience for baking (15 XP per pie)
+      const expResult = await storage.addExperience(playerId, 15);
+      const finalPlayer = await storage.getPlayer(playerId);
+
+      const message = expResult.leveledUp ? 
+        `${pieTypeName.charAt(0).toUpperCase() + pieTypeName.slice(1)} collected! Leveled up to ${expResult.newLevel}!` :
+        `${pieTypeName.charAt(0).toUpperCase() + pieTypeName.slice(1)} collected!`;
+
       res.json({ 
-        player, 
+        player: finalPlayer, 
         oven: updatedOven,
-        message: `Collected ${pieTypeName}!` 
+        message,
+        leveledUp: expResult.leveledUp,
+        newLevel: expResult.newLevel
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message || "Failed to collect pie" });
@@ -458,11 +478,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update expand challenge progress
       await storage.updateChallengeProgress(playerId, "daily-expand", 1);
+
+      // Gain experience for expanding kitchen (20 XP per expansion)
+      const expResult = await storage.addExperience(playerId, 20);
+      const finalPlayer = await storage.getPlayer(playerId);
+
+      const message = expResult.leveledUp ? 
+        `${result.message} Leveled up to ${expResult.newLevel}!` :
+        result.message;
       
       res.json({ 
-        player: updatedPlayer, 
-        message: result.message,
-        cost: result.cost 
+        player: finalPlayer, 
+        message,
+        cost: result.cost,
+        leveledUp: expResult.leveledUp,
+        newLevel: expResult.newLevel
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to expand kitchen" });
