@@ -59,8 +59,10 @@ export function Kitchen({ player }: KitchenProps) {
     },
     onSuccess: (data: any) => {
       toast({ title: "Success", description: data.message });
-      queryClient.invalidateQueries({ queryKey: ['/api/player/default'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/player/default/ovens'] });
+      // Force refetch all player-related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/player'] });
+      queryClient.refetchQueries({ queryKey: ['/api/player/default'] });
+      queryClient.refetchQueries({ queryKey: ['/api/player/default/ovens'] });
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to expand kitchen", variant: "destructive" });
