@@ -161,17 +161,48 @@ export class MemStorage implements IStorage {
   }
 
   // Level and experience management
+  // Calculate XP required for a specific level (incremental scaling)
+  private getXPRequiredForLevel(level: number): number {
+    if (level <= 1) return 0;
+    
+    // Base XP for level 2: 100
+    // Each level requires 20% more XP than the previous
+    // Level 2: 100, Level 3: 120, Level 4: 144, Level 5: 173, etc.
+    let totalXP = 0;
+    for (let i = 2; i <= level; i++) {
+      const baseXP = 100;
+      const multiplier = Math.pow(1.2, i - 2);
+      totalXP += Math.floor(baseXP * multiplier);
+    }
+    return totalXP;
+  }
+
+  // Calculate current level based on total experience
+  private calculateLevelFromExperience(totalExperience: number, maxLevel: number = 10): number {
+    let level = 1;
+    
+    for (let testLevel = 2; testLevel <= maxLevel; testLevel++) {
+      const requiredXP = this.getXPRequiredForLevel(testLevel);
+      if (totalExperience >= requiredXP) {
+        level = testLevel;
+      } else {
+        break;
+      }
+    }
+    
+    return level;
+  }
+
   async addExperience(playerId: string, amount: number): Promise<{ newLevel: number; leveledUp: boolean; experience: number }> {
     const player = await this.getPlayer(playerId);
     if (!player) throw new Error("Player not found");
 
     const newExperience = player.experience + amount;
-    const experiencePerLevel = 100;
     
     // After level 10, players can only advance with tools (manual unlock)
     let newLevel = player.level;
     if (player.level < 10) {
-      newLevel = Math.floor(newExperience / experiencePerLevel) + 1;
+      newLevel = this.calculateLevelFromExperience(newExperience, 10);
     }
     
     const leveledUp = newLevel > player.level;

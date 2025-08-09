@@ -383,6 +383,43 @@ export default function Game() {
   
   const expansionCost = player ? getExpansionCost(player.fieldSize) : null;
 
+  // Calculate XP progression (matches server-side logic)
+  const getXPRequiredForLevel = (level: number): number => {
+    if (level <= 1) return 0;
+    
+    let totalXP = 0;
+    for (let i = 2; i <= level; i++) {
+      const baseXP = 100;
+      const multiplier = Math.pow(1.2, i - 2);
+      totalXP += Math.floor(baseXP * multiplier);
+    }
+    return totalXP;
+  };
+
+  const getXPProgress = (currentXP: number, currentLevel: number) => {
+    if (currentLevel >= 10) {
+      return { 
+        currentLevelXP: currentXP, 
+        nextLevelXP: "Tool-based", 
+        progress: 100,
+        isMaxLevel: true
+      };
+    }
+    
+    const currentLevelRequirement = getXPRequiredForLevel(currentLevel);
+    const nextLevelRequirement = getXPRequiredForLevel(currentLevel + 1);
+    const currentLevelXP = currentXP - currentLevelRequirement;
+    const xpForNextLevel = nextLevelRequirement - currentLevelRequirement;
+    const progress = Math.min(100, (currentLevelXP / xpForNextLevel) * 100);
+    
+    return {
+      currentLevelXP,
+      nextLevelXP: xpForNextLevel,
+      progress,
+      isMaxLevel: false
+    };
+  };
+
   if (playerLoading || plotsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -414,21 +451,42 @@ export default function Game() {
             </div>
 
             <div className="flex flex-wrap gap-4 lg:gap-6">
-              <div className="bg-purple-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-purple-500/50">
+              <div className="bg-purple-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-purple-500/50 min-w-[160px]">
                 <div className="flex items-center gap-2">
                   <div className="text-xl">⭐</div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Level</p>
                     <p className="text-lg font-bold text-cream">{player?.level || 1}</p>
-                    {player && player.level >= 10 && (
-                      <button
-                        onClick={() => unlockLevelMutation.mutate()}
-                        disabled={unlockLevelMutation.isPending || !player}
-                        className="mt-1 px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-500 text-white rounded disabled:opacity-50"
-                      >
-                        🔧 Use Tools to Level Up
-                      </button>
-                    )}
+                    {player && (() => {
+                      const xpProgress = getXPProgress(player.experience, player.level);
+                      return (
+                        <div className="mt-1">
+                          <div className="flex items-center gap-1">
+                            <div className="bg-purple-700/50 rounded-full h-2 flex-1">
+                              <div 
+                                className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${xpProgress.progress}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-cream/80 font-medium">
+                              {Math.floor(xpProgress.progress)}%
+                            </span>
+                          </div>
+                          <p className="text-xs text-cream/60 mt-0.5">
+                            {xpProgress.isMaxLevel ? 'Max XP Level' : `${xpProgress.currentLevelXP}/${xpProgress.nextLevelXP} XP`}
+                          </p>
+                          {player.level >= 10 && (
+                            <button
+                              onClick={() => unlockLevelMutation.mutate()}
+                              disabled={unlockLevelMutation.isPending || !player}
+                              className="mt-1 px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-500 text-white rounded disabled:opacity-50 w-full"
+                            >
+                              🔧 Use Tools to Level Up
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
