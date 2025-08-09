@@ -98,6 +98,8 @@ Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds,
 ## iOS Distribution Configuration
 - **Bundle ID**: com.huntergames.pumpkinpatch
 - **Apple ID**: 6749664824
+- **App Version**: 2.0.0
+- **Build Number**: 3
 - **App Store Connect API**: Key ID 7629KQWD3Z, Issuer ID 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
 - **Provisioning Profile**: PumpkinPatch2
 - **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type
