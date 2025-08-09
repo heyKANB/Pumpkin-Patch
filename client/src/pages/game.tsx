@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
 import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat, Target } from "lucide-react";
-import Marketplace from "@/components/marketplace";
 import { Kitchen } from "@/components/kitchen";
 import { ChallengePanel } from "@/components/ChallengePanel";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
@@ -17,7 +16,6 @@ const PLAYER_ID = "default";
 
 export default function Game() {
   const { toast } = useToast();
-  const [showMarketplace, setShowMarketplace] = useState(false);
   const [showKitchen, setShowKitchen] = useState(false);
   const [showChallenges, setShowChallenges] = useState(false);
   const [selectedCropType, setSelectedCropType] = useState<"pumpkin" | "apple">("pumpkin");
@@ -595,22 +593,6 @@ export default function Game() {
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
-                    onClick={() => setShowMarketplace(!showMarketplace)}
-                  >
-                    <Store className="mr-2 h-4 w-4" />
-                    {showMarketplace ? "Close Marketplace" : "Open Marketplace"}
-                  </Button>
-                  
-                  <Button
-                    className="bg-gradient-to-r from-orange-600 to-orange-800 hover:from-orange-700 hover:to-orange-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
-                    onClick={() => setShowKitchen(!showKitchen)}
-                  >
-                    <span className="mr-2 text-lg">👨‍🍳</span>
-                    {showKitchen ? "Close Kitchen" : "Open Kitchen"}
-                  </Button>
-                  
-                  <Button
                     className="bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white shadow-lg hover:scale-105 transition-all duration-200"
                     onClick={() => setShowChallenges(!showChallenges)}
                   >
@@ -693,13 +675,6 @@ export default function Game() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Marketplace */}
-        {showMarketplace && player && (
-          <div className="mt-6">
-            <Marketplace player={player} />
-          </div>
-        )}
 
         {/* Kitchen */}
         {showKitchen && player && (
