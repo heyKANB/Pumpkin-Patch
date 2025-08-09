@@ -313,7 +313,10 @@ export default function Game() {
     const planted = new Date(plot.plantedAt).getTime();
     const minutesElapsed = Math.floor((now - planted) / (1000 * 60));
     const effectiveMinutes = plot.fertilized ? minutesElapsed * 2 : minutesElapsed;
-    const minutesRemaining = Math.max(0, 60 - effectiveMinutes);
+    
+    // Different growth times based on crop type
+    const growthTime = plot.cropType === "apple" ? 15 : 60;
+    const minutesRemaining = Math.max(0, growthTime - effectiveMinutes);
     
     if (minutesRemaining === 0) return "Ready!";
     return `${minutesRemaining}m`;
