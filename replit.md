@@ -41,9 +41,9 @@ Challenge System: User requested seasonal mini-challenges with progressive diffi
 - **Dynamic Expansion**: Field sizing from 3x3 to 10x10 and kitchen slots from 1 to 5 with exponential cost scaling
 
 ## Game Logic Architecture
-- **Growth System**: Time-based progression where pumpkins mature over 60 minutes (30 minutes with fertilizer boost)
-- **Processing System**: Kitchen with expandable oven slots for baking pumpkins into pies (30-minute bake time)
-- **Resource Management**: Multi-tier economy with pumpkin seeds (10 coins), apple seeds (5 coins), fertilizer (10 coins), pumpkins (25 coins), apples (15 coins), and pies (40 coins)
+- **Growth System**: Time-based progression where pumpkins mature over 60 minutes and apples mature over 15 minutes (fertilizer reduces time by 50%)
+- **Processing System**: Kitchen with expandable oven slots for baking pumpkins into pies (30-minute bake time) and apples into pies (15-minute bake time)
+- **Resource Management**: Multi-tier economy with pumpkin seeds (10 coins), apple seeds (5 coins), fertilizer (10 coins), pumpkins (25 coins), apples (15 coins), and pies (40 coins for pumpkin, 25 coins for apple)
 - **Field Management**: Dynamic grid system starting at 3x3, expandable to 10x10 with exponential cost scaling
 - **Kitchen Management**: Oven slots starting at 1, expandable to 5 with progressive cost increases (100, 200, 400, 800 coins)
 - **Enhancement System**: Fertilizer application for 2x growth speed with visual indicators

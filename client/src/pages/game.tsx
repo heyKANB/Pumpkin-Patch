@@ -59,9 +59,11 @@ export default function Game() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
       
+      const growthTime = selectedCropType === "apple" ? "15 minutes" : "60 minutes";
+      const cropName = selectedCropType === "apple" ? "apple tree" : "pumpkin";
       toast({
         title: "Seed Planted! 🌱",
-        description: data.message || "Your pumpkin will mature in 60 minutes",
+        description: data.message || `Your ${cropName} will mature in ${growthTime}`,
       });
     },
     onError: (error: any) => {
@@ -86,8 +88,8 @@ export default function Game() {
       queryClient.invalidateQueries({ queryKey: ["/api/player"] });
       
       toast({
-        title: "Pumpkin Harvested! 🎃",
-        description: data.message || "Added pumpkin to inventory",
+        title: "Harvest Complete! 🎃🍎",
+        description: data.message || "Added crop to inventory",
       });
     },
     onError: (error: any) => {

@@ -363,10 +363,14 @@ export class MemStorage implements IStorage {
       // Apply fertilizer speed boost (reduces time needed by 50%)
       const effectiveMinutes = plot.fertilized ? minutesSincePlanted * 2 : minutesSincePlanted;
       
+      // Different growth times based on crop type
+      const growthTime = plot.cropType === "apple" ? 15 : 60; // Apples: 15min, Pumpkins: 60min
+      const midGrowthTime = Math.floor(growthTime / 2);
+      
       let newState: PlotState = plot.state;
-      if (effectiveMinutes >= 60) {
+      if (effectiveMinutes >= growthTime) {
         newState = "mature";
-      } else if (effectiveMinutes >= 30) {
+      } else if (effectiveMinutes >= midGrowthTime) {
         newState = "growing";
       } else if (effectiveMinutes >= 0) {
         newState = "seedling";

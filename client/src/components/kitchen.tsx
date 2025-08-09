@@ -206,11 +206,7 @@ export function Kitchen({ player }: KitchenProps) {
         </div>
 
         {/* Oven Slots Grid */}
-        {/* Debug Info */}
-        <div className="text-xs text-cream/60 mb-2">
-          Debug: Kitchen slots: {player.kitchenSlots}, Ovens found: {ovens.length}, 
-          Oven slot numbers: [{ovens.map(o => o.slotNumber).join(', ')}]
-        </div>
+
         
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: player.kitchenSlots }, (_, index) => {
