@@ -21,13 +21,17 @@ workflows:
       - name: Install npm dependencies
         script: |
           npm ci
+      - name: Create minimal web assets for Capacitor
+        script: |
+          mkdir -p dist
+          echo '<html><head><title>Building...</title></head><body>Building app...</body></html>' > dist/index.html
+      - name: Initialize Capacitor iOS platform
+        script: |
+          npx cap add ios
       - name: Build web app
         script: |
           npm run build
-      - name: Initialize Capacitor iOS platform (skip sync)
-        script: |
-          npx cap add ios --skip-sync
-      - name: Sync Capacitor
+      - name: Sync Capacitor with built assets
         script: |
           npx cap sync ios
       - name: Install CocoaPods dependencies
