@@ -24,9 +24,9 @@ workflows:
       - name: Build web app
         script: |
           npm run build
-      - name: Initialize Capacitor iOS platform
+      - name: Initialize Capacitor iOS platform (skip sync)
         script: |
-          npx cap add ios
+          npx cap add ios --skip-sync
       - name: Sync Capacitor
         script: |
           npx cap sync ios
