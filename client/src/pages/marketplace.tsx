@@ -74,19 +74,65 @@ export default function Marketplace() {
 
   const buyItemMutation = useMutation({
     mutationFn: async (action: string) => {
-      const response = await fetch(`/api/${action}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId: "default" }),
-        credentials: "include"
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
+      // Map marketplace actions to API calls
+      if (action === "buy-seeds") {
+        const response = await fetch(`/api/buy`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: "default", item: "seeds", quantity: 1 }),
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
+        
+        return response.json();
+      } else if (action === "buy-apple-seeds") {
+        const response = await fetch(`/api/buy`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: "default", item: "apple-seeds", quantity: 1 }),
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
+        
+        return response.json();
+      } else if (action === "buy-fertilizer") {
+        const response = await fetch(`/api/buy`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: "default", item: "fertilizer", quantity: 1 }),
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
+        
+        return response.json();
+      } else {
+        // For expansions, use original logic
+        const response = await fetch(`/api/${action}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: "default" }),
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
+        
+        return response.json();
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player/default"] });
