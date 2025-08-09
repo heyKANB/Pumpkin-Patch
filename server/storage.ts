@@ -55,10 +55,10 @@ export class MemStorage implements IStorage {
   private async createDefaultPlayer() {
     const defaultPlayer: Player = {
       id: "default",
-      coins: 150,
-      seeds: 25,
-      pumpkins: 8,
-      appleSeeds: 0,
+      coins: 25,
+      seeds: 3,
+      pumpkins: 0,
+      appleSeeds: 3,
       apples: 0,
       pies: 0,
       applePies: 0,
@@ -87,10 +87,10 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const player: Player = { 
       id,
-      coins: insertPlayer.coins ?? 150,
-      seeds: insertPlayer.seeds ?? 25,
-      pumpkins: insertPlayer.pumpkins ?? 8,
-      appleSeeds: insertPlayer.appleSeeds ?? 0,
+      coins: insertPlayer.coins ?? 25,
+      seeds: insertPlayer.seeds ?? 3,
+      pumpkins: insertPlayer.pumpkins ?? 0,
+      appleSeeds: insertPlayer.appleSeeds ?? 3,
       apples: insertPlayer.apples ?? 0,
       pies: insertPlayer.pies ?? 0,
       applePies: insertPlayer.applePies ?? 0,
@@ -104,6 +104,7 @@ export class MemStorage implements IStorage {
     this.players.set(id, player);
     await this.initializePlayerField(id);
     await this.initializePlayerKitchen(id);
+    await this.generateDailyChallenges(id);
     return player;
   }
 
@@ -137,7 +138,7 @@ export class MemStorage implements IStorage {
       row: insertPlot.row,
       col: insertPlot.col,
       state: (insertPlot.state as PlotState) ?? "empty",
-      cropType: insertPlot.cropType ?? "pumpkin",
+      cropType: (insertPlot.cropType as "pumpkin" | "apple") ?? "pumpkin",
       plantedAt: insertPlot.plantedAt ?? null,
       lastWatered: insertPlot.lastWatered ?? null,
       fertilized: insertPlot.fertilized ?? 0,
@@ -487,7 +488,16 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const challenge: SeasonalChallenge = {
       id,
-      ...insertChallenge,
+      type: insertChallenge.type as "harvest" | "plant" | "bake" | "earn" | "expand",
+      status: insertChallenge.status as "active" | "completed" | "failed" | "locked",
+      playerId: insertChallenge.playerId,
+      challengeId: insertChallenge.challengeId,
+      title: insertChallenge.title,
+      description: insertChallenge.description,
+      targetValue: insertChallenge.targetValue,
+      currentProgress: insertChallenge.currentProgress ?? 0,
+      rewards: insertChallenge.rewards,
+      completedAt: insertChallenge.completedAt ?? null,
       createdAt: new Date(),
     };
     
