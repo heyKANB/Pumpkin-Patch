@@ -110,3 +110,8 @@ Daily Rewards: Players can collect 5 free coins once every 24 hours. This resets
 - **Capacitor Configuration**: Fixed webDir path to 'dist/public', iOS scheme settings, and splash screen configuration
 - **Build Process**: Enhanced with proper asset building, error handling, and verification steps
 - **White Screen Fix**: Added comprehensive error handling in main.tsx and improved iOS compatibility settings
+- **App Icon Configuration**: Hunter Games pumpkin icon properly configured for Apple App Store recognition
+  - Web app favicon and apple-touch-icon references updated in HTML
+  - iOS native AppIcon.appiconset configured with Hunter Games pumpkin logo
+  - Multiple icon sizes supported (57x57, 60x60, 72x72, 76x76, 114x114, 120x120, 144x144, 152x152, 180x180, 1024x1024)
+  - Icon source: attached_assets/Hunter GAmes (1)_1754541378351.png
