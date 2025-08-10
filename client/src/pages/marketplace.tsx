@@ -69,7 +69,7 @@ export default function Marketplace() {
   const { toast } = useToast();
   
   const { data: player, isLoading } = useQuery<Player>({
-    queryKey: ["/api/player/default"],
+    queryKey: ["/api/player", "default"],
   });
 
   const buyItemMutation = useMutation({
@@ -135,7 +135,8 @@ export default function Marketplace() {
       }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/player/default"] });
+      // Invalidate all player-related queries to ensure UI updates across all pages
+      queryClient.invalidateQueries({ queryKey: ["/api/player"] });
       toast({
         title: "Purchase Successful!",
         description: data.message,
