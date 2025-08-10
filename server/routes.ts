@@ -34,6 +34,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Player not found" });
       }
       
+      // Check if player has plots initialized, if not initialize them
+      const plots = await storage.getPlayerPlots(req.params.id);
+      if (plots.length === 0) {
+        console.log(`Initializing field for existing player: ${req.params.id}`);
+        await storage.initializePlayerField(req.params.id);
+        await storage.initializePlayerKitchen(req.params.id);
+      }
+      
       // Include daily coin collection status
       const dailyCoins = await storage.canCollectDailyCoins(req.params.id);
       
