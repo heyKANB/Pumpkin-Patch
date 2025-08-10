@@ -45,19 +45,29 @@ export default function Storefront() {
       method: "POST",
       body: JSON.stringify({ playerId, orderId }),
     }),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId] });
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "orders"] });
       toast({ title: data.message });
+      
+      // Wait a moment then check if we need to generate new orders
+      setTimeout(() => {
+        const currentOrders = queryClient.getQueryData<CustomerOrder[]>(["/api/player", playerId, "orders"]) || [];
+        const activeOrders = currentOrders.filter(order => order.status === "pending");
+        if (activeOrders.length < 2) {
+          generateOrdersMutation.mutate();
+        }
+      }, 1000);
     },
     onError: (error: any) => {
       toast({ title: error.message || "Failed to fulfill order", variant: "destructive" });
     },
   });
 
-  // Auto-generate orders when component mounts if none exist
+  // Auto-generate orders when component mounts if none exist or when orders are fulfilled
   useEffect(() => {
-    if (orders && orders.length === 0 && !ordersLoading) {
+    const activeOrders = orders.filter(order => order.status === "pending");
+    if (activeOrders.length === 0 && !ordersLoading && !generateOrdersMutation.isPending) {
       generateOrdersMutation.mutate();
     }
   }, [orders, ordersLoading]);
@@ -127,16 +137,19 @@ export default function Storefront() {
               Store Front
             </h1>
           </div>
-          <Button 
-            onClick={() => generateOrdersMutation.mutate()}
-            disabled={generateOrdersMutation.isPending}
-            variant="outline"
-            size="sm"
-            className="border-orange-300 text-orange-600 hover:bg-orange-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${generateOrdersMutation.isPending ? 'animate-spin' : ''}`} />
-            New Orders
-          </Button>
+          <div className="text-sm text-orange-600 dark:text-orange-400">
+            {generateOrdersMutation.isPending ? (
+              <div className="flex items-center">
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Generating new orders...
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <Store className="w-4 h-4 mr-2" />
+                Customer Orders
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -182,14 +195,16 @@ export default function Storefront() {
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   New customer orders will appear here automatically.
                 </p>
-                <Button 
-                  onClick={() => generateOrdersMutation.mutate()}
-                  disabled={generateOrdersMutation.isPending}
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${generateOrdersMutation.isPending ? 'animate-spin' : ''}`} />
-                  Generate Orders
-                </Button>
+                {generateOrdersMutation.isPending ? (
+                  <div className="flex items-center text-orange-600">
+                    <RefreshCw className="w-6 h-6 mr-2 animate-spin" />
+                    Generating customer orders...
+                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Orders will appear automatically when customers visit your store.
+                  </p>
+                )}
               </CardContent>
             </Card>
           ) : (
