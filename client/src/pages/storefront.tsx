@@ -27,10 +27,7 @@ export default function Storefront() {
 
   // Generate new orders mutation
   const generateOrdersMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/player/${playerId}/orders/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    }),
+    mutationFn: () => apiRequest("POST", `/api/player/${playerId}/orders/generate`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "orders"] });
       toast({ title: "New customer orders generated!" });
@@ -42,11 +39,10 @@ export default function Storefront() {
 
   // Fulfill order mutation
   const fulfillOrderMutation = useMutation({
-    mutationFn: (orderId: string) => apiRequest("/api/fulfill-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerId, orderId }),
-    }),
+    mutationFn: async (orderId: string) => {
+      const response = await apiRequest("POST", "/api/fulfill-order", { playerId, orderId });
+      return await response.json();
+    },
     onSuccess: async (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId] });
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "orders"] });
