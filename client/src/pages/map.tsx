@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { type Player } from "@shared/schema";
+import { XPDisplay } from "@/components/XPDisplay";
 
 const PLAYER_ID = "default";
 
@@ -130,8 +131,12 @@ export default function Map() {
               <div className="bg-black/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-amber-400">
                 <div className="text-center">
                   <div className="text-2xl mb-1">⭐</div>
-                  <div className="text-amber-100 font-bold text-lg">Level {player.level}</div>
-                  <div className="text-amber-300 text-sm">{player.experience} XP</div>
+                  <XPDisplay 
+                    level={player.level} 
+                    experience={player.experience} 
+                    showDetailed={false}
+                    className="text-amber-100"
+                  />
                 </div>
               </div>
             </div>

@@ -11,6 +11,7 @@ import { ChallengePanel } from "@/components/ChallengePanel";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
 import { RewardedAdButton } from "@/components/RewardedAdButton";
 import { DailyCoinsButton } from "@/components/DailyCoinsButton";
+import { XPDisplay, XPLevelChart } from "@/components/XPDisplay";
 import { useState } from "react";
 
 const PLAYER_ID = "default";
@@ -457,7 +458,9 @@ export default function Game() {
                   <div className="text-xl">⭐</div>
                   <div className="flex-1">
                     <p className="text-xs text-cream/70 font-medium uppercase tracking-wide">Level</p>
-                    <p className="text-lg font-bold text-cream">{player?.level || 1}</p>
+                    <div className="text-sm text-cream">
+                      Level {player?.level || 1} - {player?.experience || 0} XP
+                    </div>
                     {player && (() => {
                       const xpProgress = getXPProgress(player.experience, player.level);
                       return (
@@ -668,6 +671,16 @@ export default function Game() {
               </CardContent>
             </Card>
 
+            {/* XP Progress Details */}
+            {player && (
+              <XPDisplay 
+                level={player.level}
+                experience={player.experience}
+                showDetailed={true}
+                className="mb-6"
+              />
+            )}
+
             {/* Daily Coins Collection */}
             <Card className="bg-white/90 backdrop-blur-sm border-4 border-amber-800/30 mb-6">
               <CardContent className="p-6">
@@ -716,6 +729,9 @@ export default function Game() {
                     </div>
                   </div>
                 </div>
+                
+                {/* XP Level Chart */}
+                <XPLevelChart className="mt-6" />
               </CardContent>
             </Card>
           </div>
