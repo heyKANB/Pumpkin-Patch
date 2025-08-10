@@ -2,7 +2,7 @@ import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotSt
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { players, plots, ovens, seasonalChallenges } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Player operations
@@ -508,7 +508,9 @@ export class MemStorage implements IStorage {
         continue;
       }
 
-      const minutesSincePlanted = Math.floor((now.getTime() - plot.plantedAt.getTime()) / (1000 * 60));
+      // Ensure plantedAt is a Date object
+      const plantedDate = plot.plantedAt instanceof Date ? plot.plantedAt : new Date(plot.plantedAt);
+      const minutesSincePlanted = Math.floor((now.getTime() - plantedDate.getTime()) / (1000 * 60));
       
       // Apply fertilizer speed boost (reduces time needed by 50%)
       const effectiveMinutes = plot.fertilized ? minutesSincePlanted * 2 : minutesSincePlanted;
@@ -526,7 +528,13 @@ export class MemStorage implements IStorage {
         newState = "seedling";
       }
 
+      // Debug logging for stuck plots
+      if (minutesSincePlanted > 60 && plot.state === "seedling") {
+        console.log(`Plot debug: ${plot.playerId} (${plot.row},${plot.col}) - planted ${minutesSincePlanted}min ago, effective: ${effectiveMinutes}min, crop: ${plot.cropType}, state: ${plot.state} -> ${newState}`);
+      }
+
       if (newState !== plot.state) {
+        console.log(`Updating plot ${plot.playerId} (${plot.row},${plot.col}) from ${plot.state} to ${newState} after ${minutesSincePlanted} minutes`);
         await this.updatePlot(plot.playerId, plot.row, plot.col, { state: newState });
       }
     }
@@ -1050,7 +1058,49 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePumpkinGrowth(): Promise<void> {
-    return this.memStorage.updatePumpkinGrowth();
+    const now = new Date();
+    
+    // Get all plots that need growth checking
+    const plotsToUpdate = await db.select().from(plots).where(
+      and(
+        ne(plots.state, "empty"),
+        ne(plots.state, "mature"),
+        isNotNull(plots.plantedAt)
+      )
+    );
+    
+    for (const plot of plotsToUpdate) {
+      if (!plot.plantedAt) continue;
+      
+      const plantedDate = new Date(plot.plantedAt);
+      const minutesSincePlanted = Math.floor((now.getTime() - plantedDate.getTime()) / (1000 * 60));
+      
+      // Apply fertilizer speed boost (reduces time needed by 50%)
+      const effectiveMinutes = plot.fertilized ? minutesSincePlanted * 2 : minutesSincePlanted;
+      
+      // Different growth times based on crop type
+      const growthTime = plot.cropType === "apple" ? 15 : 60; // Apples: 15min, Pumpkins: 60min
+      const midGrowthTime = Math.floor(growthTime / 2);
+      
+      let newState: PlotState = plot.state;
+      if (effectiveMinutes >= growthTime) {
+        newState = "mature";
+      } else if (effectiveMinutes >= midGrowthTime) {
+        newState = "growing";
+      } else if (effectiveMinutes >= 0) {
+        newState = "seedling";
+      }
+
+      if (newState !== plot.state) {
+        await db.update(plots)
+          .set({ state: newState })
+          .where(and(
+            eq(plots.playerId, plot.playerId),
+            eq(plots.row, plot.row),
+            eq(plots.col, plot.col)
+          ));
+      }
+    }
   }
 
   async updatePieBaking(): Promise<void> {
