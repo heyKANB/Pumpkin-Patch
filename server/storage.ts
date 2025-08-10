@@ -1,8 +1,8 @@
-import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState, type Oven, type InsertOven, type OvenState, type SeasonalChallenge, type InsertChallenge, type ChallengeStatus } from "@shared/schema";
+import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState, type Oven, type InsertOven, type OvenState, type SeasonalChallenge, type InsertChallenge, type ChallengeStatus, type CustomerOrder, type InsertOrder, type OrderStatus } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { players, plots, ovens, seasonalChallenges } from "@shared/schema";
-import { eq, and, ne, isNotNull } from "drizzle-orm";
+import { players, plots, ovens, seasonalChallenges, customerOrders } from "@shared/schema";
+import { eq, and, ne, isNotNull, lt, gte } from "drizzle-orm";
 
 export interface IStorage {
   // Player operations
@@ -30,6 +30,15 @@ export interface IStorage {
   updateChallengeProgress(playerId: string, challengeId: string, progress: number): Promise<SeasonalChallenge | undefined>;
   generateDailyChallenges(playerId: string): Promise<void>;
   
+  // Customer Order operations
+  getPlayerOrders(playerId: string): Promise<CustomerOrder[]>;
+  getOrder(playerId: string, orderId: string): Promise<CustomerOrder | undefined>;
+  createOrder(order: InsertOrder): Promise<CustomerOrder>;
+  updateOrder(playerId: string, orderId: string, updates: Partial<CustomerOrder>): Promise<CustomerOrder | undefined>;
+  fulfillOrder(playerId: string, orderId: string): Promise<{ success: boolean; message: string; rewards?: any }>;
+  generateCustomerOrders(playerId: string): Promise<void>;
+  expireOldOrders(): Promise<void>;
+  
   // Game operations
   initializePlayerField(playerId: string): Promise<void>;
   initializePlayerKitchen(playerId: string): Promise<void>;
@@ -48,12 +57,14 @@ export class MemStorage implements IStorage {
   private plots: Map<string, Plot>;
   private ovens: Map<string, Oven>;
   private challenges: Map<string, SeasonalChallenge>;
+  private orders: Map<string, CustomerOrder>;
 
   constructor() {
     this.players = new Map();
     this.plots = new Map();
     this.ovens = new Map();
     this.challenges = new Map();
+    this.orders = new Map();
     
     // Create default player for demo
     this.createDefaultPlayer();
@@ -77,6 +88,7 @@ export class MemStorage implements IStorage {
       fieldSize: 3,
       kitchenSlots: 1,
       kitchenUnlocked: 0, // Start locked, unlock at level 2
+      lastDailyCollection: new Date(0), // Set to epoch so player can collect immediately
       lastUpdated: new Date(),
     };
     this.players.set("default", defaultPlayer);
@@ -141,6 +153,7 @@ export class MemStorage implements IStorage {
       fieldSize: insertPlayer.fieldSize ?? 3,
       kitchenSlots: insertPlayer.kitchenSlots ?? 1,
       kitchenUnlocked: insertPlayer.kitchenUnlocked ?? 0,
+      lastDailyCollection: new Date(0), // Set to epoch so player can collect immediately
       lastUpdated: new Date(),
     };
     this.players.set(id, player);
@@ -849,6 +862,228 @@ export class MemStorage implements IStorage {
       kitchen: player.level >= 2
     };
   }
+
+  // Customer Order operations
+  private getOrderKey(playerId: string, orderId: string): string {
+    return `${playerId}-${orderId}`;
+  }
+
+  async getPlayerOrders(playerId: string): Promise<CustomerOrder[]> {
+    return Array.from(this.orders.values()).filter(order => order.playerId === playerId);
+  }
+
+  async getOrder(playerId: string, orderId: string): Promise<CustomerOrder | undefined> {
+    const key = this.getOrderKey(playerId, orderId);
+    return this.orders.get(key);
+  }
+
+  async createOrder(insertOrder: InsertOrder): Promise<CustomerOrder> {
+    const id = randomUUID();
+    const order: CustomerOrder = {
+      id,
+      playerId: insertOrder.playerId,
+      customerName: insertOrder.customerName,
+      customerAvatar: insertOrder.customerAvatar,
+      title: insertOrder.title,
+      description: insertOrder.description,
+      requiredItems: insertOrder.requiredItems,
+      rewards: insertOrder.rewards,
+      status: insertOrder.status ?? "pending",
+      priority: insertOrder.priority ?? 1,
+      timeLimit: insertOrder.timeLimit,
+      createdAt: new Date(),
+      completedAt: insertOrder.completedAt ?? null,
+      expiresAt: insertOrder.expiresAt,
+    };
+    
+    const key = this.getOrderKey(order.playerId, order.id);
+    this.orders.set(key, order);
+    return order;
+  }
+
+  async updateOrder(playerId: string, orderId: string, updates: Partial<CustomerOrder>): Promise<CustomerOrder | undefined> {
+    const key = this.getOrderKey(playerId, orderId);
+    const existing = this.orders.get(key);
+    if (!existing) return undefined;
+
+    const updated = { ...existing, ...updates };
+    this.orders.set(key, updated);
+    return updated;
+  }
+
+  async fulfillOrder(playerId: string, orderId: string): Promise<{ success: boolean; message: string; rewards?: any }> {
+    const order = await this.getOrder(playerId, orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+
+    if (order.status !== "pending") {
+      return { success: false, message: "Order is no longer available" };
+    }
+
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    // Check if player has required items
+    const required = order.requiredItems;
+    if (required.pumpkins && player.pumpkins < required.pumpkins) {
+      return { success: false, message: `Need ${required.pumpkins} pumpkins` };
+    }
+    if (required.apples && player.apples < required.apples) {
+      return { success: false, message: `Need ${required.apples} apples` };
+    }
+    if (required.pies && player.pies < required.pies) {
+      return { success: false, message: `Need ${required.pies} pumpkin pies` };
+    }
+    if (required.applePies && player.applePies < required.applePies) {
+      return { success: false, message: `Need ${required.applePies} apple pies` };
+    }
+
+    // Deduct required items from player
+    const playerUpdates: Partial<Player> = {};
+    if (required.pumpkins) playerUpdates.pumpkins = player.pumpkins - required.pumpkins;
+    if (required.apples) playerUpdates.apples = player.apples - required.apples;
+    if (required.pies) playerUpdates.pies = player.pies - required.pies;
+    if (required.applePies) playerUpdates.applePies = player.applePies - required.applePies;
+
+    // Award rewards
+    playerUpdates.coins = player.coins + order.rewards.coins;
+    playerUpdates.experience = player.experience + order.rewards.experience;
+    
+    if (order.rewards.bonus) {
+      const bonus = order.rewards.bonus;
+      if (bonus.seeds) playerUpdates.seeds = (player.seeds || 0) + bonus.seeds;
+      if (bonus.fertilizer) playerUpdates.fertilizer = (player.fertilizer || 0) + bonus.fertilizer;
+      if (bonus.tools) playerUpdates.tools = (player.tools || 0) + bonus.tools;
+    }
+
+    await this.updatePlayer(playerId, playerUpdates);
+
+    // Mark order as completed
+    await this.updateOrder(playerId, orderId, {
+      status: "completed",
+      completedAt: new Date(),
+    });
+
+    return {
+      success: true,
+      message: `Order completed! Earned ${order.rewards.coins} coins and ${order.rewards.experience} XP`,
+      rewards: order.rewards,
+    };
+  }
+
+  async generateCustomerOrders(playerId: string): Promise<void> {
+    const player = await this.getPlayer(playerId);
+    if (!player) return;
+
+    // Check existing active orders - don't generate more if player already has 3+
+    const existingOrders = await this.getPlayerOrders(playerId);
+    const activeOrders = existingOrders.filter(order => order.status === "pending");
+    if (activeOrders.length >= 3) return;
+
+    // Generate 1-2 new orders based on player level
+    const numOrders = Math.min(2, 3 - activeOrders.length);
+    
+    for (let i = 0; i < numOrders; i++) {
+      const orderTemplate = this.generateOrderTemplate(player.level);
+      const expiresAt = new Date(Date.now() + orderTemplate.timeLimit * 60 * 1000);
+      
+      await this.createOrder({
+        playerId,
+        customerName: orderTemplate.customerName,
+        customerAvatar: orderTemplate.customerAvatar,
+        title: orderTemplate.title,
+        description: orderTemplate.description,
+        requiredItems: orderTemplate.requiredItems,
+        rewards: orderTemplate.rewards,
+        status: "pending",
+        priority: orderTemplate.priority,
+        timeLimit: orderTemplate.timeLimit,
+        expiresAt,
+        completedAt: null,
+      });
+    }
+  }
+
+  private generateOrderTemplate(playerLevel: number) {
+    const customers = [
+      { name: "Farmer Joe", avatar: "👨‍🌾" },
+      { name: "Baker Sarah", avatar: "👩‍🍳" },
+      { name: "Mrs. Thompson", avatar: "👵" },
+      { name: "Chef Marco", avatar: "👨‍🍳" },
+      { name: "Little Emily", avatar: "👧" },
+      { name: "Mayor Wilson", avatar: "👔" },
+    ];
+
+    const customer = customers[Math.floor(Math.random() * customers.length)];
+    const difficulty = Math.min(3, Math.max(1, playerLevel - 1));
+    const timeLimit = 60 + (difficulty * 30); // 60-150 minutes
+
+    // Generate order based on difficulty and available items
+    const orderTypes = [
+      {
+        title: "Fresh Pumpkins Needed",
+        description: `I need some fresh pumpkins for my autumn decorations!`,
+        requiredItems: { pumpkins: difficulty * 2 },
+        rewards: { coins: difficulty * 50, experience: difficulty * 15 },
+        priority: 1,
+      },
+      {
+        title: "Apple Harvest Request",
+        description: `Could you spare some crisp apples? They're for my famous apple cider!`,
+        requiredItems: { apples: difficulty * 3 },
+        rewards: { coins: difficulty * 35, experience: difficulty * 12 },
+        priority: 1,
+      },
+    ];
+
+    // Add pie orders for higher level players
+    if (playerLevel >= 2) {
+      orderTypes.push({
+        title: "Pumpkin Pie Special",
+        description: `My customers are craving homemade pumpkin pies. Can you help?`,
+        requiredItems: { pies: difficulty },
+        rewards: { coins: difficulty * 80, experience: difficulty * 25, bonus: { fertilizer: 2 } },
+        priority: 2,
+      });
+      
+      orderTypes.push({
+        title: "Apple Pie Delight",
+        description: `I need some delicious apple pies for the town festival!`,
+        requiredItems: { applePies: difficulty },
+        rewards: { coins: difficulty * 70, experience: difficulty * 22, bonus: { seeds: 3 } },
+        priority: 2,
+      });
+    }
+
+    const orderType = orderTypes[Math.floor(Math.random() * orderTypes.length)];
+
+    return {
+      customerName: customer.name,
+      customerAvatar: customer.avatar,
+      title: orderType.title,
+      description: orderType.description,
+      requiredItems: orderType.requiredItems,
+      rewards: orderType.rewards,
+      priority: orderType.priority,
+      timeLimit,
+    };
+  }
+
+  async expireOldOrders(): Promise<void> {
+    const now = new Date();
+    const allOrders = Array.from(this.orders.values());
+    
+    for (const order of allOrders) {
+      if (order.status === "pending" && order.expiresAt < now) {
+        await this.updateOrder(order.playerId, order.id, {
+          status: "expired",
+        });
+      }
+    }
+  }
 }
 
 // Database Storage Implementation
@@ -884,6 +1119,7 @@ export class DatabaseStorage implements IStorage {
         await this.initializePlayerField(newPlayer.id);
         await this.initializePlayerKitchen(newPlayer.id);
         await this.generateDailyChallenges(newPlayer.id);
+        await this.generateCustomerOrders(newPlayer.id);
         
         return newPlayer;
       }
@@ -1308,6 +1544,226 @@ export class DatabaseStorage implements IStorage {
         canCollect: false, 
         hoursUntilNext: Math.ceil(24 - hoursElapsed) 
       };
+    }
+  }
+
+  // Customer Order operations
+  async getPlayerOrders(playerId: string): Promise<CustomerOrder[]> {
+    try {
+      const orders = await db.select().from(customerOrders).where(eq(customerOrders.playerId, playerId));
+      return orders;
+    } catch (error) {
+      console.error('Database error in getPlayerOrders:', error);
+      return [];
+    }
+  }
+
+  async getOrder(playerId: string, orderId: string): Promise<CustomerOrder | undefined> {
+    try {
+      const [order] = await db.select().from(customerOrders)
+        .where(and(eq(customerOrders.playerId, playerId), eq(customerOrders.id, orderId)));
+      return order || undefined;
+    } catch (error) {
+      console.error('Database error in getOrder:', error);
+      return undefined;
+    }
+  }
+
+  async createOrder(order: InsertOrder): Promise<CustomerOrder> {
+    try {
+      const [newOrder] = await db.insert(customerOrders).values(order).returning();
+      return newOrder;
+    } catch (error) {
+      console.error('Database error in createOrder:', error);
+      throw error;
+    }
+  }
+
+  async updateOrder(playerId: string, orderId: string, updates: Partial<CustomerOrder>): Promise<CustomerOrder | undefined> {
+    try {
+      const [updatedOrder] = await db.update(customerOrders)
+        .set(updates)
+        .where(and(eq(customerOrders.playerId, playerId), eq(customerOrders.id, orderId)))
+        .returning();
+      return updatedOrder || undefined;
+    } catch (error) {
+      console.error('Database error in updateOrder:', error);
+      return undefined;
+    }
+  }
+
+  async fulfillOrder(playerId: string, orderId: string): Promise<{ success: boolean; message: string; rewards?: any }> {
+    const order = await this.getOrder(playerId, orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+
+    if (order.status !== "pending") {
+      return { success: false, message: "Order is no longer available" };
+    }
+
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    // Check if player has required items
+    const required = order.requiredItems;
+    if (required.pumpkins && player.pumpkins < required.pumpkins) {
+      return { success: false, message: `Need ${required.pumpkins} pumpkins` };
+    }
+    if (required.apples && player.apples < required.apples) {
+      return { success: false, message: `Need ${required.apples} apples` };
+    }
+    if (required.pies && player.pies < required.pies) {
+      return { success: false, message: `Need ${required.pies} pumpkin pies` };
+    }
+    if (required.applePies && player.applePies < required.applePies) {
+      return { success: false, message: `Need ${required.applePies} apple pies` };
+    }
+
+    // Deduct required items from player
+    const playerUpdates: Partial<Player> = {};
+    if (required.pumpkins) playerUpdates.pumpkins = player.pumpkins - required.pumpkins;
+    if (required.apples) playerUpdates.apples = player.apples - required.apples;
+    if (required.pies) playerUpdates.pies = player.pies - required.pies;
+    if (required.applePies) playerUpdates.applePies = player.applePies - required.applePies;
+
+    // Award rewards
+    playerUpdates.coins = player.coins + order.rewards.coins;
+    playerUpdates.experience = player.experience + order.rewards.experience;
+    
+    if (order.rewards.bonus) {
+      const bonus = order.rewards.bonus;
+      if (bonus.seeds) playerUpdates.seeds = (player.seeds || 0) + bonus.seeds;
+      if (bonus.fertilizer) playerUpdates.fertilizer = (player.fertilizer || 0) + bonus.fertilizer;
+      if (bonus.tools) playerUpdates.tools = (player.tools || 0) + bonus.tools;
+    }
+
+    await this.updatePlayer(playerId, playerUpdates);
+
+    // Mark order as completed
+    await this.updateOrder(playerId, orderId, {
+      status: "completed",
+      completedAt: new Date(),
+    });
+
+    return {
+      success: true,
+      message: `Order completed! Earned ${order.rewards.coins} coins and ${order.rewards.experience} XP`,
+      rewards: order.rewards,
+    };
+  }
+
+  async generateCustomerOrders(playerId: string): Promise<void> {
+    const player = await this.getPlayer(playerId);
+    if (!player) return;
+
+    // Check existing active orders - don't generate more if player already has 3+
+    const existingOrders = await this.getPlayerOrders(playerId);
+    const activeOrders = existingOrders.filter(order => order.status === "pending");
+    if (activeOrders.length >= 3) return;
+
+    // Generate 1-2 new orders based on player level
+    const numOrders = Math.min(2, 3 - activeOrders.length);
+    
+    for (let i = 0; i < numOrders; i++) {
+      const orderTemplate = this.generateOrderTemplate(player.level);
+      const expiresAt = new Date(Date.now() + orderTemplate.timeLimit * 60 * 1000);
+      
+      await this.createOrder({
+        playerId,
+        customerName: orderTemplate.customerName,
+        customerAvatar: orderTemplate.customerAvatar,
+        title: orderTemplate.title,
+        description: orderTemplate.description,
+        requiredItems: orderTemplate.requiredItems,
+        rewards: orderTemplate.rewards,
+        status: "pending",
+        priority: orderTemplate.priority,
+        timeLimit: orderTemplate.timeLimit,
+        expiresAt,
+        completedAt: null,
+      });
+    }
+  }
+
+  private generateOrderTemplate(playerLevel: number) {
+    const customers = [
+      { name: "Farmer Joe", avatar: "👨‍🌾" },
+      { name: "Baker Sarah", avatar: "👩‍🍳" },
+      { name: "Mrs. Thompson", avatar: "👵" },
+      { name: "Chef Marco", avatar: "👨‍🍳" },
+      { name: "Little Emily", avatar: "👧" },
+      { name: "Mayor Wilson", avatar: "👔" },
+    ];
+
+    const customer = customers[Math.floor(Math.random() * customers.length)];
+    const difficulty = Math.min(3, Math.max(1, playerLevel));
+    const timeLimit = 60 + (difficulty * 30); // 60-150 minutes
+
+    // Generate order based on difficulty and available items
+    const orderTypes = [
+      {
+        title: "Fresh Pumpkins Needed",
+        description: `I need some fresh pumpkins for my autumn decorations!`,
+        requiredItems: { pumpkins: difficulty * 2 },
+        rewards: { coins: difficulty * 50, experience: difficulty * 15 },
+        priority: 1,
+      },
+      {
+        title: "Apple Harvest Request",
+        description: `Could you spare some crisp apples? They're for my famous apple cider!`,
+        requiredItems: { apples: difficulty * 3 },
+        rewards: { coins: difficulty * 35, experience: difficulty * 12 },
+        priority: 1,
+      },
+    ];
+
+    // Add pie orders for higher level players
+    if (playerLevel >= 2) {
+      orderTypes.push({
+        title: "Pumpkin Pie Special",
+        description: `My customers are craving homemade pumpkin pies. Can you help?`,
+        requiredItems: { pies: difficulty },
+        rewards: { coins: difficulty * 80, experience: difficulty * 25, bonus: { fertilizer: 2 } },
+        priority: 2,
+      });
+      
+      orderTypes.push({
+        title: "Apple Pie Delight",
+        description: `I need some delicious apple pies for the town festival!`,
+        requiredItems: { applePies: difficulty },
+        rewards: { coins: difficulty * 70, experience: difficulty * 22, bonus: { seeds: 3 } },
+        priority: 2,
+      });
+    }
+
+    const orderType = orderTypes[Math.floor(Math.random() * orderTypes.length)];
+
+    return {
+      customerName: customer.name,
+      customerAvatar: customer.avatar,
+      title: orderType.title,
+      description: orderType.description,
+      requiredItems: orderType.requiredItems,
+      rewards: orderType.rewards,
+      priority: orderType.priority,
+      timeLimit,
+    };
+  }
+
+  async expireOldOrders(): Promise<void> {
+    try {
+      const now = new Date();
+      await db.update(customerOrders)
+        .set({ status: "expired" })
+        .where(and(
+          eq(customerOrders.status, "pending"),
+          lt(customerOrders.expiresAt, now)
+        ));
+    } catch (error) {
+      console.error('Database error in expireOldOrders:', error);
     }
   }
 }

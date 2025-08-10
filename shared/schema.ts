@@ -191,6 +191,49 @@ export const unlockLevelSchema = z.object({
   playerId: z.string(),
 });
 
+// Customer Order system
+export const orderStatus = ["pending", "in_progress", "completed", "expired"] as const;
+export type OrderStatus = typeof orderStatus[number];
+
+export const customerOrders = pgTable("customer_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  playerId: varchar("player_id").notNull(),
+  customerName: text("customer_name").notNull(),
+  customerAvatar: text("customer_avatar").notNull(), // emoji or avatar identifier
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  requiredItems: jsonb("required_items").$type<{
+    pumpkins?: number;
+    apples?: number;
+    pies?: number;
+    applePies?: number;
+  }>().notNull(),
+  rewards: jsonb("rewards").$type<{
+    coins: number;
+    experience: number;
+    bonus?: { seeds?: number; fertilizer?: number; tools?: number };
+  }>().notNull(),
+  status: text("status").$type<OrderStatus>().notNull().default("pending"),
+  priority: integer("priority").notNull().default(1), // 1=normal, 2=urgent, 3=premium
+  timeLimit: integer("time_limit").notNull(), // minutes until expiration
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const insertOrderSchema = createInsertSchema(customerOrders).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const fulfillOrderSchema = z.object({
+  playerId: z.string(),
+  orderId: z.string(),
+});
+
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type CustomerOrder = typeof customerOrders.$inferSelect;
+
 export type PlantSeedRequest = z.infer<typeof plantSeedSchema>;
 export type HarvestPlotRequest = z.infer<typeof harvestPlotSchema>;
 export type BuyItemRequest = z.infer<typeof buyItemSchema>;

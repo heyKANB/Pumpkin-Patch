@@ -17,6 +17,7 @@ import {
   updateChallengeProgressSchema,
   unlockLevelSchema,
   collectDailyCoinsSchema,
+  fulfillOrderSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
@@ -674,6 +675,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to collect daily coins" });
+    }
+  });
+
+  // Customer Order routes
+  
+  // Get player's orders
+  app.get("/api/player/:id/orders", async (req, res) => {
+    try {
+      await storage.expireOldOrders(); // Clean up expired orders first
+      const orders = await storage.getPlayerOrders(req.params.id);
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get orders" });
+    }
+  });
+
+  // Generate new customer orders for a player
+  app.post("/api/player/:id/orders/generate", async (req, res) => {
+    try {
+      await storage.generateCustomerOrders(req.params.id);
+      const orders = await storage.getPlayerOrders(req.params.id);
+      res.json({ orders, message: "New orders generated!" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate orders" });
+    }
+  });
+
+  // Fulfill a customer order
+  app.post("/api/fulfill-order", async (req, res) => {
+    try {
+      const { playerId, orderId } = fulfillOrderSchema.parse(req.body);
+      
+      const result = await storage.fulfillOrder(playerId, orderId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.message });
+      }
+
+      const updatedPlayer = await storage.getPlayer(playerId);
+      
+      res.json({ 
+        player: updatedPlayer,
+        message: result.message,
+        rewards: result.rewards
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fulfill order" });
     }
   });
 
