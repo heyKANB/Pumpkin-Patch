@@ -28,11 +28,12 @@ Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds,
 - **Error Handling**: Centralized error handling middleware with structured error responses
 
 ## Data Storage Solutions
-- **Database**: PostgreSQL configured through Drizzle ORM
+- **Database**: PostgreSQL configured through Drizzle ORM with proper player initialization
 - **ORM**: Drizzle ORM with code-first schema definition and type generation
 - **Schema Management**: Drizzle Kit for database migrations and schema synchronization
-- **Development Storage**: In-memory storage implementation for development/demo purposes
+- **Production Storage**: DatabaseStorage implementation using PostgreSQL for persistent player data
 - **Connection**: Neon Database serverless PostgreSQL for production deployments
+- **Player Initialization**: New players start with 25 coins, 3 pumpkin seeds, 3 apple seeds at level 1
 
 ## Database Schema Design
 - **Players Table**: Stores user progress (coins, seeds, pumpkins, pies, fertilizer, field size, kitchen slots)

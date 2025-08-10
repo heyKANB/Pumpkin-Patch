@@ -1,5 +1,8 @@
 import { type Player, type InsertPlayer, type Plot, type InsertPlot, type PlotState, type Oven, type InsertOven, type OvenState, type SeasonalChallenge, type InsertChallenge, type ChallengeStatus } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { players, plots, ovens, seasonalChallenges } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // Player operations
@@ -64,7 +67,7 @@ export class MemStorage implements IStorage {
       coins: 25,
       seeds: 3,
       pumpkins: 0,
-      appleSeeds: 0, // Start with 0 apple seeds - unlock at level 2
+      appleSeeds: 3, // Start with 3 apple seeds per project requirements
       apples: 0,
       pies: 0,
       applePies: 0,
@@ -840,5 +843,168 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getPlayer(id: string): Promise<Player | undefined> {
+    try {
+      const [player] = await db.select().from(players).where(eq(players.id, id));
+      if (!player) {
+        // Create new player if not found
+        return await this.createPlayer({
+          level: 1,
+          experience: 0,
+          coins: 25,
+          seeds: 3,
+          pumpkins: 0,
+          appleSeeds: 3, // Start with 3 apple seeds per project requirements
+          apples: 0,
+          pies: 0,
+          applePies: 0,
+          fertilizer: 0,
+          tools: 0,
+          day: 1,
+          fieldSize: 3,
+          kitchenSlots: 1,
+          kitchenUnlocked: 0,
+        });
+      }
+      return player;
+    } catch (error) {
+      console.error('Database error in getPlayer:', error);
+      return undefined;
+    }
+  }
+
+  async createPlayer(insertPlayer: InsertPlayer): Promise<Player> {
+    const [player] = await db
+      .insert(players)
+      .values({
+        level: insertPlayer.level ?? 1,
+        experience: insertPlayer.experience ?? 0,
+        coins: insertPlayer.coins ?? 25,
+        seeds: insertPlayer.seeds ?? 3,
+        pumpkins: insertPlayer.pumpkins ?? 0,
+        appleSeeds: insertPlayer.appleSeeds ?? 3,
+        apples: insertPlayer.apples ?? 0,
+        pies: insertPlayer.pies ?? 0,
+        applePies: insertPlayer.applePies ?? 0,
+        fertilizer: insertPlayer.fertilizer ?? 0,
+        tools: insertPlayer.tools ?? 0,
+        day: insertPlayer.day ?? 1,
+        fieldSize: insertPlayer.fieldSize ?? 3,
+        kitchenSlots: insertPlayer.kitchenSlots ?? 1,
+        kitchenUnlocked: insertPlayer.kitchenUnlocked ?? 0,
+      })
+      .returning();
+    
+    await this.initializePlayerField(player.id);
+    await this.initializePlayerKitchen(player.id);
+    await this.generateDailyChallenges(player.id);
+    
+    return player;
+  }
+
+  async updatePlayer(id: string, updates: Partial<Player>): Promise<Player | undefined> {
+    const [player] = await db
+      .update(players)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(players.id, id))
+      .returning();
+    return player;
+  }
+
+  // Implement other storage methods with database calls
+  // For now, delegate to MemStorage for complex operations
+  private memStorage = new MemStorage();
+
+  async getPlayerPlots(playerId: string): Promise<Plot[]> {
+    return this.memStorage.getPlayerPlots(playerId);
+  }
+
+  async getPlot(playerId: string, row: number, col: number): Promise<Plot | undefined> {
+    return this.memStorage.getPlot(playerId, row, col);
+  }
+
+  async createPlot(plot: InsertPlot): Promise<Plot> {
+    return this.memStorage.createPlot(plot);
+  }
+
+  async updatePlot(playerId: string, row: number, col: number, updates: Partial<Plot>): Promise<Plot | undefined> {
+    return this.memStorage.updatePlot(playerId, row, col, updates);
+  }
+
+  async getPlayerOvens(playerId: string): Promise<Oven[]> {
+    return this.memStorage.getPlayerOvens(playerId);
+  }
+
+  async getOven(playerId: string, slotNumber: number): Promise<Oven | undefined> {
+    return this.memStorage.getOven(playerId, slotNumber);
+  }
+
+  async createOven(oven: InsertOven): Promise<Oven> {
+    return this.memStorage.createOven(oven);
+  }
+
+  async updateOven(playerId: string, slotNumber: number, updates: Partial<Oven>): Promise<Oven | undefined> {
+    return this.memStorage.updateOven(playerId, slotNumber, updates);
+  }
+
+  async getPlayerChallenges(playerId: string): Promise<SeasonalChallenge[]> {
+    return this.memStorage.getPlayerChallenges(playerId);
+  }
+
+  async getChallenge(playerId: string, challengeId: string): Promise<SeasonalChallenge | undefined> {
+    return this.memStorage.getChallenge(playerId, challengeId);
+  }
+
+  async createChallenge(challenge: InsertChallenge): Promise<SeasonalChallenge> {
+    return this.memStorage.createChallenge(challenge);
+  }
+
+  async updateChallenge(playerId: string, challengeId: string, updates: Partial<SeasonalChallenge>): Promise<SeasonalChallenge | undefined> {
+    return this.memStorage.updateChallenge(playerId, challengeId, updates);
+  }
+
+  async updateChallengeProgress(playerId: string, challengeId: string, progress: number): Promise<SeasonalChallenge | undefined> {
+    return this.memStorage.updateChallengeProgress(playerId, challengeId, progress);
+  }
+
+  async generateDailyChallenges(playerId: string): Promise<void> {
+    return this.memStorage.generateDailyChallenges(playerId);
+  }
+
+  async initializePlayerField(playerId: string): Promise<void> {
+    return this.memStorage.initializePlayerField(playerId);
+  }
+
+  async initializePlayerKitchen(playerId: string): Promise<void> {
+    return this.memStorage.initializePlayerKitchen(playerId);
+  }
+
+  async updatePumpkinGrowth(): Promise<void> {
+    return this.memStorage.updatePumpkinGrowth();
+  }
+
+  async updatePieBaking(): Promise<void> {
+    return this.memStorage.updatePieBaking();
+  }
+
+  async expandPlayerField(playerId: string): Promise<{ success: boolean; message: string; cost?: number }> {
+    return this.memStorage.expandPlayerField(playerId);
+  }
+
+  async expandPlayerKitchen(playerId: string): Promise<{ success: boolean; message: string; cost?: number }> {
+    return this.memStorage.expandPlayerKitchen(playerId);
+  }
+
+  async gainExperience(playerId: string, xp: number): Promise<{ player: Player; leveledUp: boolean; newLevel?: number }> {
+    return this.memStorage.gainExperience(playerId, xp);
+  }
+
+  checkLevelUnlocks(player: Player): { appleSeeds: boolean; kitchen: boolean } {
+    return this.memStorage.checkLevelUnlocks(player);
+  }
+}
+
+export const storage = new DatabaseStorage();
 

@@ -44,6 +44,8 @@ export const plots = pgTable("plots", {
 export const insertPlayerSchema = createInsertSchema(players).omit({
   id: true,
   lastUpdated: true,
+}).extend({
+  appleSeeds: z.number().min(0).default(3), // Ensure new players start with 3 apple seeds
 });
 
 export const insertPlotSchema = createInsertSchema(plots).omit({
@@ -133,9 +135,7 @@ export const ovens = pgTable("ovens", {
   pieType: text("pie_type", { enum: ["pumpkin", "apple"] }),
   startedAt: timestamp("started_at"),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.playerId, table.slotNumber] }),
-}));
+});
 
 export const startBakingSchema = z.object({
   playerId: z.string(),
