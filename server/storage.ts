@@ -929,43 +929,53 @@ export class DatabaseStorage implements IStorage {
   private memStorage = new MemStorage();
 
   async getPlayerPlots(playerId: string): Promise<Plot[]> {
-    return await db.select().from(plots).where(eq(plots.player_id, playerId));
+    return await db.select().from(plots).where(eq(plots.playerId, playerId));
   }
 
   async getPlot(playerId: string, row: number, col: number): Promise<Plot | undefined> {
     const [plot] = await db.select().from(plots).where(
-      and(eq(plots.player_id, playerId), eq(plots.row, row), eq(plots.col, col))
+      and(eq(plots.playerId, playerId), eq(plots.row, row), eq(plots.col, col))
     );
     return plot;
   }
 
   async createPlot(plot: InsertPlot): Promise<Plot> {
-    return this.memStorage.createPlot(plot);
+    const [newPlot] = await db.insert(plots).values(plot).returning();
+    return newPlot;
   }
 
   async updatePlot(playerId: string, row: number, col: number, updates: Partial<Plot>): Promise<Plot | undefined> {
     const [plot] = await db
       .update(plots)
       .set(updates)
-      .where(and(eq(plots.player_id, playerId), eq(plots.row, row), eq(plots.col, col)))
+      .where(and(eq(plots.playerId, playerId), eq(plots.row, row), eq(plots.col, col)))
       .returning();
     return plot;
   }
 
   async getPlayerOvens(playerId: string): Promise<Oven[]> {
-    return this.memStorage.getPlayerOvens(playerId);
+    return await db.select().from(ovens).where(eq(ovens.playerId, playerId));
   }
 
   async getOven(playerId: string, slotNumber: number): Promise<Oven | undefined> {
-    return this.memStorage.getOven(playerId, slotNumber);
+    const [oven] = await db.select().from(ovens).where(
+      and(eq(ovens.playerId, playerId), eq(ovens.slotNumber, slotNumber))
+    );
+    return oven;
   }
 
   async createOven(oven: InsertOven): Promise<Oven> {
-    return this.memStorage.createOven(oven);
+    const [newOven] = await db.insert(ovens).values(oven).returning();
+    return newOven;
   }
 
   async updateOven(playerId: string, slotNumber: number, updates: Partial<Oven>): Promise<Oven | undefined> {
-    return this.memStorage.updateOven(playerId, slotNumber, updates);
+    const [oven] = await db
+      .update(ovens)
+      .set(updates)
+      .where(and(eq(ovens.playerId, playerId), eq(ovens.slotNumber, slotNumber)))
+      .returning();
+    return oven;
   }
 
   async getPlayerChallenges(playerId: string): Promise<SeasonalChallenge[]> {
@@ -999,20 +1009,20 @@ export class DatabaseStorage implements IStorage {
     const fieldSize = player.fieldSize;
     
     // Check if plots already exist
-    const existingPlots = await db.select().from(plots).where(eq(plots.player_id, playerId));
+    const existingPlots = await db.select().from(plots).where(eq(plots.playerId, playerId));
     if (existingPlots.length > 0) return;
 
     // Create initial field plots
     for (let row = 0; row < fieldSize; row++) {
       for (let col = 0; col < fieldSize; col++) {
-        await db.insert(plots).values({
-          player_id: playerId,
+        await this.createPlot({
+          playerId,
           row,
           col,
           state: "empty",
-          crop_type: "pumpkin",
-          planted_at: null,
-          last_watered: null,
+          cropType: "pumpkin",
+          plantedAt: null,
+          lastWatered: null,
           fertilized: 0,
         });
       }
@@ -1024,17 +1034,17 @@ export class DatabaseStorage implements IStorage {
     if (!player) return;
 
     // Check if ovens already exist
-    const existingOvens = await db.select().from(ovens).where(eq(ovens.player_id, playerId));
+    const existingOvens = await db.select().from(ovens).where(eq(ovens.playerId, playerId));
     if (existingOvens.length > 0) return;
 
     // Create initial kitchen ovens
     for (let slot = 1; slot <= player.kitchenSlots; slot++) {
-      await db.insert(ovens).values({
-        player_id: playerId,
-        slot_number: slot,
+      await this.createOven({
+        playerId,
+        slotNumber: slot,
         state: "empty",
-        pie_type: "pumpkin",
-        started_at: null,
+        pieType: "pumpkin",
+        startedAt: null,
       });
     }
   }
@@ -1076,14 +1086,14 @@ export class DatabaseStorage implements IStorage {
       for (let col = 0; col < newSize; col++) {
         const existingPlot = await this.getPlot(playerId, row, col);
         if (!existingPlot) {
-          await db.insert(plots).values({
-            player_id: playerId,
+          await this.createPlot({
+            playerId,
             row,
             col,
             state: "empty",
-            crop_type: "pumpkin",
-            planted_at: null,
-            last_watered: null,
+            cropType: "pumpkin",
+            plantedAt: null,
+            lastWatered: null,
             fertilized: 0,
           });
         }
