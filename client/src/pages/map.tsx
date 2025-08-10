@@ -480,60 +480,69 @@ export default function Map() {
             </div>
           </div>
 
-          {/* Location Icons - Store Front (Coming Soon) */}
+          {/* Location Icons - Store Front */}
           <div className="absolute" style={{ left: '75%', top: '75%' }}>
-            <div className="group cursor-not-allowed">
-              <div className="relative opacity-60 transform hover:scale-105 transition-all duration-300">
-                {/* Store Building - Victorian style */}
-                <div className="relative">
-                  <div className="w-28 h-24 bg-purple-700 rounded-t-lg relative shadow-2xl border-2 border-purple-800">
-                    {/* Fancy roof */}
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 w-0 h-0 border-l-[16px] border-r-[16px] border-b-[15px] border-transparent border-b-purple-900"></div>
-                    <div className="absolute -top-2 left-3 right-3 h-5 bg-purple-800 rounded-t-lg"></div>
-                    
-                    {/* Storefront windows (dark) */}
-                    <div className="absolute top-4 left-2 w-6 h-6 bg-gray-600 rounded border-2 border-gray-700">
-                      <div className="absolute inset-1 bg-gray-800 rounded opacity-90"></div>
-                    </div>
-                    <div className="absolute top-4 right-2 w-6 h-6 bg-gray-600 rounded border-2 border-gray-700">
-                      <div className="absolute inset-1 bg-gray-800 rounded opacity-90"></div>
-                    </div>
-                    
-                    {/* Store door (closed) */}
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-10 h-14 bg-gray-700 rounded-t-lg border-2 border-gray-800">
-                      <div className="absolute top-2 right-1 w-1 h-1 bg-gray-500 rounded-full"></div>
-                      <div className="absolute inset-2 bg-gray-800 rounded-t-lg opacity-80"></div>
-                    </div>
-                    
-                    {/* "CLOSED" sign with chain */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-red-600 text-white text-xs px-2 py-1 rounded shadow-lg transform rotate-12 border border-red-700">
-                        CLOSED
+            <div className="group cursor-pointer">
+              <Link href="/storefront">
+                <div className="relative transform hover:scale-105 transition-all duration-300">
+                  {/* Store Building - Victorian style */}
+                  <div className="relative">
+                    <div className="w-28 h-24 bg-orange-700 rounded-t-lg relative shadow-2xl border-2 border-orange-800">
+                      {/* Fancy roof */}
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-3 w-0 h-0 border-l-[16px] border-r-[16px] border-b-[15px] border-transparent border-b-orange-900"></div>
+                      <div className="absolute -top-2 left-3 right-3 h-5 bg-orange-800 rounded-t-lg"></div>
+                      
+                      {/* Storefront windows (bright and welcoming) */}
+                      <div className="absolute top-4 left-2 w-6 h-6 bg-yellow-300 rounded border-2 border-yellow-600 shadow-inner">
+                        <div className="absolute inset-0.5 bg-orange-200 rounded opacity-80"></div>
+                        <div className="absolute top-1 left-1 text-xs">🛍️</div>
                       </div>
+                      <div className="absolute top-4 right-2 w-6 h-6 bg-yellow-300 rounded border-2 border-yellow-600 shadow-inner">
+                        <div className="absolute inset-0.5 bg-orange-200 rounded opacity-80"></div>
+                        <div className="absolute top-1 left-1 text-xs">🏪</div>
+                      </div>
+                      
+                      {/* Store door (open and inviting) */}
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-10 h-14 bg-amber-900 rounded-t-lg border-2 border-amber-800">
+                        <div className="absolute top-2 right-1 w-1 h-1 bg-yellow-400 rounded-full"></div>
+                        <div className="absolute inset-2 bg-amber-700 rounded-t-lg opacity-80"></div>
+                        <div className="absolute bottom-0 left-1 right-1 h-2 bg-yellow-200 opacity-60"></div>
+                      </div>
+                      
+                      {/* "OPEN" sign */}
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg border border-green-600 animate-pulse">
+                          OPEN
+                        </div>
+                      </div>
+                      
+                      {/* Store awning */}
+                      <div className="absolute top-10 left-1 right-1 h-3 bg-orange-600 rounded shadow-md border border-orange-700">
+                        <div className="absolute inset-x-1 top-0.5 h-1 bg-orange-500 rounded opacity-80"></div>
+                      </div>
+                      
+                      {/* Customer activity indicators */}
+                      <div className="absolute -bottom-4 -left-2 text-sm animate-bounce opacity-80">👨‍🌾</div>
+                      <div className="absolute -bottom-4 -right-2 text-sm animate-pulse opacity-70">👩‍🍳</div>
+                      
+                      {/* Store goods display */}
+                      <div className="absolute bottom-2 left-3 text-xs opacity-90">🎃</div>
+                      <div className="absolute bottom-2 right-3 text-xs opacity-90">🥧</div>
                     </div>
                     
-                    {/* Boarded windows */}
-                    <div className="absolute top-6 left-3 w-2 h-4 bg-amber-900 rounded-sm transform rotate-45 opacity-80"></div>
-                    <div className="absolute top-6 right-3 w-2 h-4 bg-amber-900 rounded-sm transform -rotate-45 opacity-80"></div>
+                    {/* Store sign post */}
+                    <div className="absolute -right-6 top-2 w-1 h-16 bg-amber-800 shadow-sm"></div>
+                    <div className="absolute -right-10 top-0 bg-orange-600 text-white text-xs px-2 py-1 rounded shadow-lg border border-orange-700 transform rotate-6">
+                      Orders!
+                    </div>
                     
-                    {/* Construction barriers */}
-                    <div className="absolute -bottom-2 left-0 right-0 h-1 bg-yellow-500 opacity-70"></div>
-                    <div className="absolute -bottom-3 left-2 w-2 h-2 bg-orange-500 rounded opacity-60"></div>
-                    <div className="absolute -bottom-3 right-2 w-2 h-2 bg-orange-500 rounded opacity-60"></div>
-                  </div>
-                  
-                  {/* Construction equipment */}
-                  <div className="absolute -right-4 bottom-0 w-6 h-4 bg-yellow-600 rounded shadow-md">
-                    <div className="absolute top-0 left-1 w-1 h-2 bg-yellow-700"></div>
-                    <div className="absolute top-1 right-1 text-xs">🔨</div>
-                  </div>
-                  
-                  {/* Label */}
-                  <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">
-                    🏪 Store Front (Coming Soon)
+                    {/* Label */}
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-70 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-gray-600">
+                      🏪 Store Front
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 
