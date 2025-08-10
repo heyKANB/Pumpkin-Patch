@@ -29,6 +29,7 @@ export default function Storefront() {
   const generateOrdersMutation = useMutation({
     mutationFn: () => apiRequest(`/api/player/${playerId}/orders/generate`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" }
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "orders"] });
@@ -43,12 +44,13 @@ export default function Storefront() {
   const fulfillOrderMutation = useMutation({
     mutationFn: (orderId: string) => apiRequest("/api/fulfill-order", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ playerId, orderId }),
     }),
-    onSuccess: async (data) => {
+    onSuccess: async (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId] });
       queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "orders"] });
-      toast({ title: data.message });
+      toast({ title: data.message || "Order fulfilled!" });
       
       // Wait a moment then check if we need to generate new orders
       setTimeout(() => {
@@ -92,7 +94,7 @@ export default function Storefront() {
     }
   };
 
-  const getTimeRemaining = (expiresAt: string) => {
+  const getTimeRemaining = (expiresAt: string | Date) => {
     const now = new Date().getTime();
     const expires = new Date(expiresAt).getTime();
     const remaining = expires - now;
