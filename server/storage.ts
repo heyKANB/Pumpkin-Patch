@@ -849,24 +849,35 @@ export class DatabaseStorage implements IStorage {
     try {
       const [player] = await db.select().from(players).where(eq(players.id, id));
       if (!player) {
-        // Create new player if not found
-        return await this.createPlayer({
-          level: 1,
-          experience: 0,
-          coins: 25,
-          seeds: 3,
-          pumpkins: 0,
-          appleSeeds: 3, // Start with 3 apple seeds per project requirements
-          apples: 0,
-          pies: 0,
-          applePies: 0,
-          fertilizer: 0,
-          tools: 0,
-          day: 1,
-          fieldSize: 3,
-          kitchenSlots: 1,
-          kitchenUnlocked: 0,
-        });
+        console.log(`Creating new player with ID: ${id}`);
+        // Create new player if not found with the provided ID
+        const [newPlayer] = await db
+          .insert(players)
+          .values({
+            id, // Use the provided ID instead of generating a new one
+            level: 1,
+            experience: 0,
+            coins: 25,
+            seeds: 3,
+            pumpkins: 0,
+            appleSeeds: 3, // Start with 3 apple seeds per project requirements
+            apples: 0,
+            pies: 0,
+            applePies: 0,
+            fertilizer: 0,
+            tools: 0,
+            day: 1,
+            fieldSize: 3,
+            kitchenSlots: 1,
+            kitchenUnlocked: 0,
+          })
+          .returning();
+        
+        await this.initializePlayerField(newPlayer.id);
+        await this.initializePlayerKitchen(newPlayer.id);
+        await this.generateDailyChallenges(newPlayer.id);
+        
+        return newPlayer;
       }
       return player;
     } catch (error) {
@@ -990,7 +1001,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async expandPlayerField(playerId: string): Promise<{ success: boolean; message: string; cost?: number }> {
-    return this.memStorage.expandPlayerField(playerId);
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    if (player.fieldSize >= 10) {
+      return { success: false, message: "Field is already at maximum size (10x10)" };
+    }
+
+    // Calculate expansion cost: 50 coins for 4x4, 100 for 5x5, 200 for 6x6, etc.
+    const newSize = player.fieldSize + 1;
+    const cost = Math.pow(2, newSize - 4) * 50; // Exponentially increasing cost
+
+    if (player.coins < cost) {
+      return { success: false, message: `Not enough coins. Expansion to ${newSize}x${newSize} costs ${cost} coins`, cost };
+    }
+
+    // Update player in database
+    await this.updatePlayer(playerId, {
+      coins: player.coins - cost,
+      fieldSize: newSize,
+    });
+
+    // Delegate plot creation to memStorage for now
+    await this.memStorage.expandPlayerField(playerId);
+
+    return { 
+      success: true, 
+      message: `Field expanded to ${newSize}x${newSize} for ${cost} coins!`,
+      cost 
+    };
   }
 
   async expandPlayerKitchen(playerId: string): Promise<{ success: boolean; message: string; cost?: number }> {
@@ -998,11 +1039,91 @@ export class DatabaseStorage implements IStorage {
   }
 
   async gainExperience(playerId: string, xp: number): Promise<{ player: Player; leveledUp: boolean; newLevel?: number }> {
-    return this.memStorage.gainExperience(playerId, xp);
+    const player = await this.getPlayer(playerId);
+    if (!player) throw new Error("Player not found");
+
+    const newExperience = player.experience + xp;
+    
+    // After level 10, players can only advance with tools (manual unlock)
+    let newLevel = player.level;
+    if (player.level < 10) {
+      newLevel = this.calculateLevelFromExperience(newExperience, 10);
+    }
+    
+    const leveledUp = newLevel > player.level;
+
+    const updatedPlayer = await this.updatePlayer(playerId, { 
+      experience: newExperience, 
+      level: newLevel 
+    });
+
+    return { 
+      player: updatedPlayer!, 
+      leveledUp, 
+      newLevel: leveledUp ? newLevel : undefined 
+    };
+  }
+
+  // Calculate current level based on total experience
+  private calculateLevelFromExperience(totalExperience: number, maxLevel: number = 10): number {
+    let level = 1;
+    
+    for (let testLevel = 2; testLevel <= maxLevel; testLevel++) {
+      const requiredXP = this.getXPRequiredForLevel(testLevel);
+      if (totalExperience >= requiredXP) {
+        level = testLevel;
+      } else {
+        break;
+      }
+    }
+    
+    return level;
+  }
+
+  // Calculate XP required for a specific level (incremental scaling)
+  private getXPRequiredForLevel(level: number): number {
+    if (level <= 1) return 0;
+    
+    // Base XP for level 2: 100
+    // Each level requires 20% more XP than the previous
+    // Level 2: 100, Level 3: 120, Level 4: 144, Level 5: 173, etc.
+    let totalXP = 0;
+    for (let i = 2; i <= level; i++) {
+      const baseXP = 100;
+      const multiplier = Math.pow(1.2, i - 2);
+      totalXP += Math.floor(baseXP * multiplier);
+    }
+    return totalXP;
   }
 
   checkLevelUnlocks(player: Player): { appleSeeds: boolean; kitchen: boolean } {
-    return this.memStorage.checkLevelUnlocks(player);
+    return {
+      appleSeeds: player.level >= 2,
+      kitchen: player.level >= 2,
+    };
+  }
+
+  // Add missing addExperience method that routes calls properly
+  async addExperience(playerId: string, amount: number): Promise<{ newLevel: number; leveledUp: boolean; experience: number }> {
+    const result = await this.gainExperience(playerId, amount);
+    return {
+      newLevel: result.player.level,
+      leveledUp: result.leveledUp,
+      experience: result.player.experience
+    };
+  }
+
+  // Add missing methods for routes
+  async unlockNextLevel(playerId: string): Promise<{ success: boolean; newLevel: number; toolsRequired: number; message: string }> {
+    return this.memStorage.unlockNextLevel(playerId);
+  }
+
+  async startBaking(playerId: string, slotNumber: number, pieType: "pumpkin" | "apple"): Promise<{ success: boolean; message: string }> {
+    return this.memStorage.startBaking(playerId, slotNumber, pieType);
+  }
+
+  async collectPie(playerId: string, slotNumber: number): Promise<{ success: boolean; message: string; pieType?: "pumpkin" | "apple" }> {
+    return this.memStorage.collectPie(playerId, slotNumber);
   }
 }
 
