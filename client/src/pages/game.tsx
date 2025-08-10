@@ -668,10 +668,22 @@ export default function Game() {
               </CardContent>
             </Card>
 
+            {/* Daily Coins Collection */}
+            <Card className="bg-white/90 backdrop-blur-sm border-4 border-amber-800/30 mb-6">
+              <CardContent className="p-6">
+                <h2 className="font-bold text-xl text-dark-brown mb-4 flex items-center gap-2">
+                  <Coins className="text-golden" />
+                  Daily Rewards
+                </h2>
+                <DailyCoinsButton playerId={PLAYER_ID} />
+              </CardContent>
+            </Card>
+
+            {/* Farm Guide - Moved to Bottom */}
             <Card className="bg-white/90 backdrop-blur-sm border-4 border-amber-800/30">
               <CardContent className="p-6">
                 <h2 className="font-bold text-2xl text-dark-brown mb-6 flex items-center gap-2">
-                  <TrendingUp className="text-golden" />
+                  <BookOpen className="text-golden" />
                   Farm Guide
                 </h2>
 
@@ -704,8 +716,6 @@ export default function Game() {
                     </div>
                   </div>
                 </div>
-
-
               </CardContent>
             </Card>
           </div>
