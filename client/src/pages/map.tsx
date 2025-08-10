@@ -21,12 +21,12 @@ interface MapLocation {
 const mapLocations: MapLocation[] = [
   {
     id: "farm",
-    name: "Farm Field",
+    name: "Farm Field", 
     description: "Plant and harvest crops in your pumpkin patch",
     icon: Sprout,
     route: "/farm",
     available: true,
-    position: { x: 20, y: 60 }
+    position: { x: 15, y: 75 }  // Bottom left - main farming area
   },
   {
     id: "kitchen", 
@@ -35,7 +35,7 @@ const mapLocations: MapLocation[] = [
     icon: ChefHat,
     route: "/kitchen",
     available: true,
-    position: { x: 70, y: 30 },
+    position: { x: 75, y: 25 },  // Top right - elevated kitchen area
     levelRequired: 2
   },
   {
@@ -45,7 +45,7 @@ const mapLocations: MapLocation[] = [
     icon: ShoppingCart,
     route: "/marketplace", 
     available: true,
-    position: { x: 50, y: 80 }
+    position: { x: 25, y: 25 }  // Top left - market square area
   },
   {
     id: "storefront",
@@ -54,7 +54,7 @@ const mapLocations: MapLocation[] = [
     icon: Store,
     route: "/storefront",
     available: false,
-    position: { x: 80, y: 70 }
+    position: { x: 75, y: 75 }  // Bottom right - commercial district
   }
 ];
 
@@ -178,27 +178,46 @@ export default function Map() {
             />
           </svg>
           
-          {/* Winding dirt paths */}
+          {/* Winding dirt paths connecting all locations */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+            {/* Main path: Farm (15,75) to Marketplace (25,25) */}
             <path 
-              d="M15,75 Q30,60 50,65 Q70,70 85,55" 
+              d="M15,75 Q20,50 25,25" 
               fill="none" 
               stroke="rgba(139, 69, 19, 0.6)" 
               strokeWidth="2.5"
               strokeDasharray="1,0.5"
             />
+            {/* Path: Marketplace (25,25) to Kitchen (75,25) */}
             <path 
-              d="M50,65 Q60,50 70,25" 
+              d="M25,25 Q50,20 75,25" 
               fill="none" 
               stroke="rgba(139, 69, 19, 0.5)" 
               strokeWidth="2"
               strokeDasharray="1,0.5"
             />
+            {/* Path: Kitchen (75,25) to Store Front (75,75) */}
             <path 
-              d="M15,75 Q25,55 50,65" 
+              d="M75,25 Q80,50 75,75" 
               fill="none" 
               stroke="rgba(139, 69, 19, 0.4)" 
               strokeWidth="1.8"
+              strokeDasharray="1,0.5"
+            />
+            {/* Path: Farm (15,75) to Store Front (75,75) */}
+            <path 
+              d="M15,75 Q45,80 75,75" 
+              fill="none" 
+              stroke="rgba(139, 69, 19, 0.3)" 
+              strokeWidth="1.5"
+              strokeDasharray="1,0.5"
+            />
+            {/* Central crossroads */}
+            <path 
+              d="M25,25 Q45,45 75,75" 
+              fill="none" 
+              stroke="rgba(139, 69, 19, 0.3)" 
+              strokeWidth="1.2"
               strokeDasharray="1,0.5"
             />
           </svg>
@@ -277,7 +296,7 @@ export default function Map() {
           </div>
 
           {/* Location Icons - Kitchen */}
-          <div className="absolute" style={{ left: '70%', top: '25%' }}>
+          <div className="absolute" style={{ left: '75%', top: '25%' }}>
             <div className={`group ${isLocationUnlocked(mapLocations[1]) ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
               {isLocationUnlocked(mapLocations[1]) ? (
                 <Link href="/kitchen">
@@ -391,7 +410,7 @@ export default function Map() {
           </div>
 
           {/* Location Icons - Marketplace */}
-          <div className="absolute" style={{ left: '50%', top: '65%' }}>
+          <div className="absolute" style={{ left: '25%', top: '25%' }}>
             <div className="group cursor-pointer">
               <Link href="/marketplace">
                 <div className="relative transform hover:scale-105 transition-all duration-300">
@@ -462,7 +481,7 @@ export default function Map() {
           </div>
 
           {/* Location Icons - Store Front (Coming Soon) */}
-          <div className="absolute" style={{ left: '80%', top: '60%' }}>
+          <div className="absolute" style={{ left: '75%', top: '75%' }}>
             <div className="group cursor-not-allowed">
               <div className="relative opacity-60 transform hover:scale-105 transition-all duration-300">
                 {/* Store Building - Victorian style */}
