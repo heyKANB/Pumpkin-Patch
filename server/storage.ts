@@ -929,11 +929,14 @@ export class DatabaseStorage implements IStorage {
   private memStorage = new MemStorage();
 
   async getPlayerPlots(playerId: string): Promise<Plot[]> {
-    return this.memStorage.getPlayerPlots(playerId);
+    return await db.select().from(plots).where(eq(plots.player_id, playerId));
   }
 
   async getPlot(playerId: string, row: number, col: number): Promise<Plot | undefined> {
-    return this.memStorage.getPlot(playerId, row, col);
+    const [plot] = await db.select().from(plots).where(
+      and(eq(plots.player_id, playerId), eq(plots.row, row), eq(plots.col, col))
+    );
+    return plot;
   }
 
   async createPlot(plot: InsertPlot): Promise<Plot> {
@@ -941,7 +944,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePlot(playerId: string, row: number, col: number, updates: Partial<Plot>): Promise<Plot | undefined> {
-    return this.memStorage.updatePlot(playerId, row, col, updates);
+    const [plot] = await db
+      .update(plots)
+      .set(updates)
+      .where(and(eq(plots.player_id, playerId), eq(plots.row, row), eq(plots.col, col)))
+      .returning();
+    return plot;
   }
 
   async getPlayerOvens(playerId: string): Promise<Oven[]> {
@@ -985,11 +993,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializePlayerField(playerId: string): Promise<void> {
-    return this.memStorage.initializePlayerField(playerId);
+    const player = await this.getPlayer(playerId);
+    if (!player) return;
+
+    const fieldSize = player.fieldSize;
+    
+    // Check if plots already exist
+    const existingPlots = await db.select().from(plots).where(eq(plots.player_id, playerId));
+    if (existingPlots.length > 0) return;
+
+    // Create initial field plots
+    for (let row = 0; row < fieldSize; row++) {
+      for (let col = 0; col < fieldSize; col++) {
+        await db.insert(plots).values({
+          player_id: playerId,
+          row,
+          col,
+          state: "empty",
+          crop_type: "pumpkin",
+          planted_at: null,
+          last_watered: null,
+          fertilized: 0,
+        });
+      }
+    }
   }
 
   async initializePlayerKitchen(playerId: string): Promise<void> {
-    return this.memStorage.initializePlayerKitchen(playerId);
+    const player = await this.getPlayer(playerId);
+    if (!player) return;
+
+    // Check if ovens already exist
+    const existingOvens = await db.select().from(ovens).where(eq(ovens.player_id, playerId));
+    if (existingOvens.length > 0) return;
+
+    // Create initial kitchen ovens
+    for (let slot = 1; slot <= player.kitchenSlots; slot++) {
+      await db.insert(ovens).values({
+        player_id: playerId,
+        slot_number: slot,
+        state: "empty",
+        pie_type: "pumpkin",
+        started_at: null,
+      });
+    }
   }
 
   async updatePumpkinGrowth(): Promise<void> {
@@ -1024,8 +1071,24 @@ export class DatabaseStorage implements IStorage {
       fieldSize: newSize,
     });
 
-    // Delegate plot creation to memStorage for now
-    await this.memStorage.expandPlayerField(playerId);
+    // Add new plots for the expanded area in database
+    for (let row = 0; row < newSize; row++) {
+      for (let col = 0; col < newSize; col++) {
+        const existingPlot = await this.getPlot(playerId, row, col);
+        if (!existingPlot) {
+          await db.insert(plots).values({
+            player_id: playerId,
+            row,
+            col,
+            state: "empty",
+            crop_type: "pumpkin",
+            planted_at: null,
+            last_watered: null,
+            fertilized: 0,
+          });
+        }
+      }
+    }
 
     return { 
       success: true, 
