@@ -88,8 +88,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const plot = await storage.getPlot(playerId, row, col);
-      if (!plot || plot.state !== "empty") {
-        return res.status(400).json({ message: "Plot is not available for planting" });
+      if (!plot) {
+        return res.status(400).json({ message: "Plot not found" });
+      }
+      if (plot.state !== "empty") {
+        return res.status(400).json({ 
+          message: `Plot already has a ${plot.state} ${plot.cropType}. Cannot plant here.` 
+        });
       }
 
       // Update plot to planted
