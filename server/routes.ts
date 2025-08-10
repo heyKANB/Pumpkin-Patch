@@ -678,6 +678,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix player level based on current experience
+  app.post("/api/player/:id/fix-level", async (req, res) => {
+    try {
+      const playerId = req.params.id;
+      const player = await storage.getPlayer(playerId);
+      
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Calculate what the player's level should be
+      function getXPRequiredForLevel(level: number): number {
+        if (level <= 1) return 0;
+        let totalXP = 0;
+        for (let i = 2; i <= level; i++) {
+          const baseXP = 100;
+          const multiplier = Math.pow(1.2, i - 2);
+          totalXP += Math.floor(baseXP * multiplier);
+        }
+        return totalXP;
+      }
+
+      function calculateLevelFromExperience(totalExperience: number, maxLevel: number = 10): number {
+        let level = 1;
+        for (let testLevel = 2; testLevel <= maxLevel; testLevel++) {
+          const requiredXP = getXPRequiredForLevel(testLevel);
+          if (totalExperience >= requiredXP) {
+            level = testLevel;
+          } else {
+            break;
+          }
+        }
+        return level;
+      }
+      
+      const correctLevel = calculateLevelFromExperience(player.experience);
+      
+      if (correctLevel !== player.level) {
+        const updatedPlayer = await storage.updatePlayer(playerId, { level: correctLevel });
+        res.json({ 
+          success: true, 
+          oldLevel: player.level, 
+          newLevel: correctLevel,
+          experience: player.experience,
+          message: `Level corrected from ${player.level} to ${correctLevel} based on ${player.experience} XP`,
+          player: updatedPlayer
+        });
+      } else {
+        res.json({ 
+          success: true, 
+          message: "Player level is already correct",
+          level: player.level,
+          experience: player.experience
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fix player level" });
+    }
+  });
+
   // Customer Order routes
   
   // Get player's orders
