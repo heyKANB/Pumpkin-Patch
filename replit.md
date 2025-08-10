@@ -1,6 +1,6 @@
 # Overview
 
-**Version 2.0.1** - This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game now features a map-style navigation system with an "autumn in the Smokey mountains" theme as the main menu hub. The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization. **NEW in v2.0**: Comprehensive level progression system with incremental XP requirements, multi-activity experience earning, and tool-based advancement after level 10. **FIXED in v2.0.1**: TestFlight player initialization now properly provides starting resources (25 coins, 3 pumpkin seeds, 3 apple seeds) with persistent PostgreSQL database storage.
+**Version 2.0.2** - This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game now features a map-style navigation system with an "autumn in the Smokey mountains" theme as the main menu hub. The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization. **NEW in v2.0**: Comprehensive level progression system with incremental XP requirements, multi-activity experience earning, and tool-based advancement after level 10. **FIXED in v2.0.1**: TestFlight player initialization now properly provides starting resources (25 coins, 3 pumpkin seeds, 3 apple seeds) with persistent PostgreSQL database storage. **ENHANCED in v2.0.2**: Fixed field expansion limits and improved mobile device compatibility with proper database storage integration.
 
 # User Preferences
 
@@ -99,8 +99,8 @@ Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds,
 ## iOS Distribution Configuration
 - **Bundle ID**: com.huntergames.pumpkinpatch
 - **Apple ID**: 6749664824
-- **App Version**: 2.0.1
-- **Build Number**: 5
+- **App Version**: 2.0.2
+- **Build Number**: 6
 - **App Store Connect API**: Key ID 7629KQWD3Z, Issuer ID 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
 - **Provisioning Profile**: PumpkinPatch2
 - **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type on Mac mini M2 instances
