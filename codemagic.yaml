@@ -14,8 +14,8 @@ workflows:
         BUNDLE_ID: "com.huntergames.pumpkinpatch"
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
-        APP_VERSION: "2.0.2"
-        BUILD_NUMBER: "6"
+        APP_VERSION: "2.0.3"
+        BUILD_NUMBER: "7"
       node: v20.18.0
       xcode: latest
       cocoapods: default
