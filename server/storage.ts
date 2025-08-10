@@ -1191,12 +1191,74 @@ export class DatabaseStorage implements IStorage {
     return this.memStorage.unlockNextLevel(playerId);
   }
 
+  async collectDailyCoins(playerId: string): Promise<{ success: boolean; message: string; coinsReceived?: number }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    // Check if 24 hours have passed since last collection
+    const now = new Date();
+    const lastCollection = player.lastDailyCollection;
+    
+    if (lastCollection) {
+      const timeSinceLastCollection = now.getTime() - lastCollection.getTime();
+      const hoursElapsed = timeSinceLastCollection / (1000 * 60 * 60);
+      
+      if (hoursElapsed < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursElapsed);
+        return { 
+          success: false, 
+          message: `Daily coins already collected. Try again in ${hoursRemaining} hours.` 
+        };
+      }
+    }
+
+    // Give 5 free coins
+    const updatedPlayer = await this.updatePlayer(playerId, {
+      coins: player.coins + 5,
+      lastDailyCollection: now,
+    });
+
+    if (!updatedPlayer) {
+      return { success: false, message: "Failed to update player" };
+    }
+
+    return {
+      success: true,
+      message: "Collected 5 daily coins!",
+      coinsReceived: 5
+    };
+  }
+
   async startBaking(playerId: string, slotNumber: number, pieType: "pumpkin" | "apple"): Promise<{ success: boolean; message: string }> {
     return this.memStorage.startBaking(playerId, slotNumber, pieType);
   }
 
   async collectPie(playerId: string, slotNumber: number): Promise<{ success: boolean; message: string; pieType?: "pumpkin" | "apple" }> {
     return this.memStorage.collectPie(playerId, slotNumber);
+  }
+
+  // Check if daily coins can be collected (for UI display)
+  async canCollectDailyCoins(playerId: string): Promise<{ canCollect: boolean; hoursUntilNext?: number }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) return { canCollect: false };
+
+    const lastCollection = player.lastDailyCollection;
+    if (!lastCollection) return { canCollect: true };
+
+    const now = new Date();
+    const timeSinceLastCollection = now.getTime() - lastCollection.getTime();
+    const hoursElapsed = timeSinceLastCollection / (1000 * 60 * 60);
+
+    if (hoursElapsed >= 24) {
+      return { canCollect: true };
+    } else {
+      return { 
+        canCollect: false, 
+        hoursUntilNext: Math.ceil(24 - hoursElapsed) 
+      };
+    }
   }
 }
 

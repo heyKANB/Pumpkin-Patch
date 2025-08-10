@@ -1,6 +1,6 @@
 # Overview
 
-**Version 2.0.3** - This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game now features a map-style navigation system with an "autumn in the Smokey mountains" theme as the main menu hub. The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization. **NEW in v2.0**: Comprehensive level progression system with incremental XP requirements, multi-activity experience earning, and tool-based advancement after level 10. **FIXED in v2.0.1**: TestFlight player initialization now properly provides starting resources (25 coins, 3 pumpkin seeds, 3 apple seeds) with persistent PostgreSQL database storage. **ENHANCED in v2.0.2**: Fixed field expansion limits and improved mobile device compatibility with proper database storage integration. **CRITICAL FIXES in v2.0.3**: Implemented full database persistence for plots and ovens, ensuring iOS app data persists between sessions and field expansion works correctly from 3x3 to 10x10.
+**Version 2.0.3** - This is a web-based farming simulation game built with a full-stack architecture featuring a map-based navigation system. Players navigate between different game areas through an interactive map menu: Farm Field for crop management, Kitchen for food processing, Marketplace for trading, and Store Front (coming soon). The game now features a map-style navigation system with an "autumn in the Smokey mountains" theme as the main menu hub. The game includes multiple crop types (pumpkins and apples), real-time growth mechanics, progressive field expansion from 3x3 up to 10x10, and a Kitchen system for processing crops into valuable pies. Enhanced with fertilizer system for accelerated growth, multiple crop types with different pricing, autumn/October theming throughout, and Google AdSense integration for monetization. **NEW in v2.0**: Comprehensive level progression system with incremental XP requirements, multi-activity experience earning, and tool-based advancement after level 10. **FIXED in v2.0.1**: TestFlight player initialization now properly provides starting resources (25 coins, 3 pumpkin seeds, 3 apple seeds) with persistent PostgreSQL database storage. **ENHANCED in v2.0.2**: Fixed field expansion limits and improved mobile device compatibility with proper database storage integration. **CRITICAL FIXES in v2.0.3**: Implemented full database persistence for plots and ovens, ensuring iOS app data persists between sessions and field expansion works correctly from 3x3 to 10x10. **NEW in v2.0.4**: Added daily free coins system - players can collect 5 coins once every 24 hours with database-tracked timing and user-friendly UI integration.
 
 # User Preferences
 
@@ -8,6 +8,7 @@ Preferred communication style: Simple, everyday language.
 Farmer's Bolt: User prefers to manually select which crop type to plant using a selection interface, while keeping automatic harvesting for mature crops.
 Challenge System: User requested seasonal mini-challenges with progressive difficulty - implemented with 5 challenge types (harvest, plant, bake, earn, expand) and real-time progress tracking. Daily challenges are automatically generated and can only be completed once per day (no manual reset functionality).
 Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds, and 25 coins when they first download and launch the game.
+Daily Rewards: Players can collect 5 free coins once every 24 hours. This resets daily and provides a reliable coin income for progression.
 
 # System Architecture
 
@@ -36,12 +37,13 @@ Initial Resources: New players should start with 3 pumpkin seeds, 3 apple seeds,
 - **Player Initialization**: New players start with 25 coins, 3 pumpkin seeds, 3 apple seeds at level 1
 
 ## Database Schema Design
-- **Players Table**: Stores user progress (coins, seeds, pumpkins, pies, fertilizer, field size, kitchen slots)
+- **Players Table**: Stores user progress (coins, seeds, pumpkins, pies, fertilizer, field size, kitchen slots, lastDailyCollection)
 - **Plots Table**: Manages individual farm plots with state tracking (empty, seedling, growing, mature, fertilized)
 - **Ovens Table**: Manages kitchen oven slots with baking state tracking (empty, baking, ready)
 - **Relationships**: Plot and oven ownership linked to players through foreign keys
-- **Timestamps**: Automatic tracking of planting time, baking start time, and last update for growth calculations
+- **Timestamps**: Automatic tracking of planting time, baking start time, last update, and daily coin collection timing
 - **Dynamic Expansion**: Field sizing from 3x3 to 10x10 and kitchen slots from 1 to 5 with exponential cost scaling
+- **Daily Rewards**: Database-tracked 24-hour cooldown system for free coin collection
 
 ## Game Logic Architecture
 - **Growth System**: Time-based progression where pumpkins mature over 60 minutes and apples mature over 15 minutes (fertilizer reduces time by 50%)

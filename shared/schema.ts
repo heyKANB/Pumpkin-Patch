@@ -20,6 +20,7 @@ export const players = pgTable("players", {
   fieldSize: integer("field_size").notNull().default(3),
   kitchenSlots: integer("kitchen_slots").notNull().default(1),
   kitchenUnlocked: integer("kitchen_unlocked").notNull().default(0), // 0 = locked, 1 = unlocked
+  lastDailyCollection: timestamp("last_daily_collection"),
   lastUpdated: timestamp("last_updated").notNull().defaultNow(),
 });
 
@@ -159,6 +160,10 @@ export const unlockKitchenSchema = z.object({
 export const insertOvenSchema = createInsertSchema(ovens).omit({
   id: true,
   lastUpdated: true,
+});
+
+export const collectDailyCoinsSchema = z.object({
+  playerId: z.string(),
 });
 
 export const buyItemSchema = z.object({

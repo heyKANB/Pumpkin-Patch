@@ -16,6 +16,7 @@ import {
   completeChallengeSchema,
   updateChallengeProgressSchema,
   unlockLevelSchema,
+  collectDailyCoinsSchema,
   type PlantSeedRequest,
   type HarvestPlotRequest,
   type BuyItemRequest,
@@ -32,7 +33,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!player) {
         return res.status(404).json({ message: "Player not found" });
       }
-      res.json(player);
+      
+      // Include daily coin collection status
+      const dailyCoins = await storage.canCollectDailyCoins(req.params.id);
+      
+      res.json({ 
+        ...player, 
+        canCollectDailyCoins: dailyCoins.canCollect,
+        hoursUntilNextDaily: dailyCoins.hoursUntilNext 
+      });
     } catch (error) {
       res.status(500).json({ message: "Failed to get player" });
     }
@@ -631,7 +640,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Collect daily coins
+  app.post("/api/collect-daily-coins", async (req, res) => {
+    try {
+      const validatedData = collectDailyCoinsSchema.parse(req.body);
+      const { playerId } = validatedData;
 
+      const result = await storage.collectDailyCoins(playerId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.message });
+      }
+
+      const updatedPlayer = await storage.getPlayer(playerId);
+      
+      res.json({ 
+        player: updatedPlayer,
+        message: result.message,
+        coinsReceived: result.coinsReceived
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to collect daily coins" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

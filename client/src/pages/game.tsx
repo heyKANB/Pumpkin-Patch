@@ -10,6 +10,7 @@ import { Kitchen } from "@/components/kitchen";
 import { ChallengePanel } from "@/components/ChallengePanel";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
 import { RewardedAdButton } from "@/components/RewardedAdButton";
+import { DailyCoinsButton } from "@/components/DailyCoinsButton";
 import { useState } from "react";
 
 const PLAYER_ID = "default";
@@ -35,7 +36,7 @@ export default function Game() {
   };
 
   // Queries
-  const { data: player, isLoading: playerLoading } = useQuery<Player>({
+  const { data: player, isLoading: playerLoading } = useQuery<Player & { canCollectDailyCoins?: boolean; hoursUntilNextDaily?: number }>({
     queryKey: ["/api/player", PLAYER_ID],
   });
 
@@ -506,6 +507,18 @@ export default function Game() {
                   </div>
                 </div>
               </div>
+
+              {/* Daily Coins Section */}
+              {player && (
+                <div className="bg-yellow-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-yellow-500/50">
+                  <div className="text-xs text-cream/70 font-medium uppercase tracking-wide mb-2">Daily Bonus</div>
+                  <DailyCoinsButton
+                    playerId={PLAYER_ID}
+                    canCollect={player.canCollectDailyCoins || false}
+                    hoursUntilNext={player.hoursUntilNextDaily}
+                  />
+                </div>
+              )}
 
               <div className="bg-green-500/20 backdrop-blur-sm rounded-xl px-4 py-2 border-2 border-green-500/50">
                 <div className="flex items-center gap-2">
