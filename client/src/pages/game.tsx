@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
-import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat, Target } from "lucide-react";
+import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat, Target, BookOpen } from "lucide-react";
 import { Kitchen } from "@/components/kitchen";
 import { ChallengePanel } from "@/components/ChallengePanel";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
