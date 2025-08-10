@@ -605,6 +605,69 @@ export default function Game() {
           
           {/* Game Info Sidebar */}
           <div className="xl:col-span-1 order-2 xl:order-1">
+            {/* Farmer's Bolt - Crop Selection */}
+            <Card className="bg-white/90 backdrop-blur-sm border-4 border-amber-800/30 mb-6">
+              <CardContent className="p-6">
+                <h3 className="font-bold text-dark-brown mb-3 flex items-center gap-2">
+                  <span className="text-xl">⚡</span>
+                  Farmer's Bolt - Select Crop to Plant
+                </h3>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => setSelectedCropType("pumpkin")}
+                    className={`w-full flex items-center gap-2 ${
+                      selectedCropType === "pumpkin" 
+                        ? "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-800" 
+                        : "bg-white hover:bg-orange-50 text-dark-brown border-2 border-orange-300"
+                    }`}
+                    disabled={player?.seeds === 0}
+                  >
+                    <span className="text-lg">🎃</span>
+                    <div className="text-left flex-1">
+                      <div className="font-semibold">Pumpkin Seeds</div>
+                      <div className="text-xs opacity-80">You have: {player?.seeds || 0}</div>
+                    </div>
+                  </Button>
+                  
+                  {player && player.level >= 2 ? (
+                    <Button
+                      onClick={() => setSelectedCropType("apple")}
+                      className={`w-full flex items-center gap-2 ${
+                        selectedCropType === "apple" 
+                          ? "bg-red-600 hover:bg-red-700 text-white border-2 border-red-800" 
+                          : "bg-white hover:bg-red-50 text-dark-brown border-2 border-red-300"
+                      }`}
+                      disabled={player?.appleSeeds === 0}
+                    >
+                      <span className="text-lg">🍎</span>
+                      <div className="text-left flex-1">
+                        <div className="font-semibold">Apple Seeds</div>
+                        <div className="text-xs opacity-80">You have: {player?.appleSeeds || 0}</div>
+                      </div>
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-400"
+                      disabled={true}
+                    >
+                      <span className="text-lg grayscale">🍎</span>
+                      <div className="text-left flex-1">
+                        <div className="font-semibold">Apple Seeds</div>
+                        <div className="text-xs opacity-80">🔒 Unlocks at Level 2</div>
+                      </div>
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-3 text-sm text-dark-brown/70 text-center p-2 bg-amber-50 rounded-lg border border-amber-200">
+                  Selected: <span className="font-semibold text-dark-brown">
+                    {selectedCropType === "apple" ? "🍎 Apple" : "🎃 Pumpkin"} 
+                  </span>
+                  <br />
+                  <span className="text-xs">Click empty plots to plant this crop type</span>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="bg-white/90 backdrop-blur-sm border-4 border-amber-800/30">
               <CardContent className="p-6">
                 <h2 className="font-bold text-2xl text-dark-brown mb-6 flex items-center gap-2">
@@ -751,64 +814,7 @@ export default function Game() {
                   </Button>
                 </div>
 
-                {/* Farmer's Bolt - Crop Selection */}
-                <div className="bg-gradient-to-r from-amber-100 to-amber-200 rounded-xl p-4 border-2 border-amber-800/50">
-                  <h3 className="font-bold text-dark-brown mb-3 flex items-center gap-2">
-                    <span className="text-xl">⚡</span>
-                    Farmer's Bolt - Select Crop to Plant
-                  </h3>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => setSelectedCropType("pumpkin")}
-                      className={`flex items-center gap-2 ${
-                        selectedCropType === "pumpkin" 
-                          ? "bg-orange-600 hover:bg-orange-700 text-white border-2 border-orange-800" 
-                          : "bg-white hover:bg-orange-50 text-dark-brown border-2 border-orange-300"
-                      }`}
-                      disabled={player?.seeds === 0}
-                    >
-                      <span className="text-lg">🎃</span>
-                      <div className="text-left">
-                        <div className="font-semibold">Pumpkin Seeds</div>
-                        <div className="text-xs opacity-80">You have: {player?.seeds || 0}</div>
-                      </div>
-                    </Button>
-                    
-                    {player && player.level >= 2 ? (
-                      <Button
-                        onClick={() => setSelectedCropType("apple")}
-                        className={`flex items-center gap-2 ${
-                          selectedCropType === "apple" 
-                            ? "bg-red-600 hover:bg-red-700 text-white border-2 border-red-800" 
-                            : "bg-white hover:bg-red-50 text-dark-brown border-2 border-red-300"
-                        }`}
-                        disabled={player?.appleSeeds === 0}
-                      >
-                        <span className="text-lg">🍎</span>
-                        <div className="text-left">
-                          <div className="font-semibold">Apple Seeds</div>
-                          <div className="text-xs opacity-80">You have: {player?.appleSeeds || 0}</div>
-                        </div>
-                      </Button>
-                    ) : (
-                      <Button
-                        className="flex items-center gap-2 bg-gray-300 text-gray-500 cursor-not-allowed border-2 border-gray-400"
-                        disabled={true}
-                      >
-                        <span className="text-lg grayscale">🍎</span>
-                        <div className="text-left">
-                          <div className="font-semibold">Apple Seeds</div>
-                          <div className="text-xs opacity-80">🔒 Unlocks at Level 2</div>
-                        </div>
-                      </Button>
-                    )}
-                  </div>
-                  <div className="mt-3 text-sm text-dark-brown/70">
-                    Selected: <span className="font-semibold text-dark-brown">
-                      {selectedCropType === "apple" ? "🍎 Apple" : "🎃 Pumpkin"} 
-                    </span> - Click empty plots to plant this crop type
-                  </div>
-                </div>
+
                 
                 <div className="flex items-center gap-3">
                   <Button
