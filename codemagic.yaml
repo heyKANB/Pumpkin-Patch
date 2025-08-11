@@ -28,7 +28,12 @@ workflows:
           NODE_ENV=production npm run build
       - name: Initialize Capacitor iOS platform
         script: |
-          npx cap add ios
+          if [ ! -d "ios" ]; then
+            echo "Creating iOS platform..."
+            npx cap add ios
+          else
+            echo "iOS platform already exists, skipping initialization"
+          fi
       - name: Sync Capacitor with built assets
         script: |
           npx cap sync ios

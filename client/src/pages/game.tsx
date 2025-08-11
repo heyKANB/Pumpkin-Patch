@@ -688,7 +688,11 @@ export default function Game() {
                   <Coins className="text-golden" />
                   Daily Rewards
                 </h2>
-                <DailyCoinsButton playerId={PLAYER_ID} />
+                <DailyCoinsButton 
+                  playerId={PLAYER_ID}
+                  canCollect={player?.canCollectDailyCoins || false}
+                  hoursUntilNext={player?.hoursUntilNextDaily}
+                />
               </CardContent>
             </Card>
 
