@@ -326,10 +326,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let hasEnough = false;
       
       if (item === "pumpkins") {
-        price = quantity * 30; // 30 coins per pumpkin
+        price = quantity * 22; // 22 coins per pumpkin (discounted from order fulfillment)
         hasEnough = player.pumpkins >= quantity;
       } else if (item === "apples") {
-        price = quantity * 15; // 15 coins per apple
+        price = quantity * 12; // 12 coins per apple (discounted from order fulfillment)
         hasEnough = player.apples >= quantity;
       } else if (item === "seeds") {
         price = quantity * 8; // 8 coins per seed (sell for less than buy price)
