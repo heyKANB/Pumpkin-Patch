@@ -119,28 +119,30 @@ export default function Map() {
         <div className="absolute top-60 right-1/4 text-2xl animate-bounce">🍁</div>
       </div>
       {/* Header */}
-      <div className="relative z-10 text-center py-8">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1"></div>
-          <div className="flex-1 text-center">
-            <h1 className="text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">🍂 Pumpkin Patch Valley 🍂</h1>
-            <p className="text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg">Grow pumpkins and offer fall flavored goodies to make your Pumpkin Patch the most popular one in the valley!</p>
-          </div>
+      <div className="relative z-10 py-8">
+        <div className="relative mx-auto max-w-7xl px-4">
+          {/* XP Display - Positioned absolutely to not affect centering */}
           {player && (
-            <div className="flex-1 flex justify-end">
-              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-amber-400">
+            <div className="absolute top-0 right-4 z-20">
+              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-2 border border-amber-400">
                 <div className="text-center">
-                  <div className="text-2xl mb-1">⭐</div>
+                  <div className="text-xl mb-1">⭐</div>
                   <XPDisplay 
                     level={player.level} 
                     experience={player.experience} 
                     showDetailed={false}
-                    className="text-amber-100"
+                    className="text-amber-100 text-sm"
                   />
                 </div>
               </div>
             </div>
           )}
+          
+          {/* Centered title - Now truly centered */}
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold text-amber-100 dark:text-amber-50 mb-2 drop-shadow-2xl">🍂 Pumpkin Patch Valley 🍂</h1>
+            <p className="text-lg sm:text-xl text-amber-200 dark:text-amber-100 drop-shadow-lg max-w-4xl mx-auto">Grow pumpkins and offer fall flavored goodies to make your Pumpkin Patch the most popular one in the valley!</p>
+          </div>
         </div>
       </div>
       {/* Map Container */}
