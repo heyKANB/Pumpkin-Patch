@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Player, type Plot } from "@shared/schema";
-import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat, Target, BookOpen } from "lucide-react";
+import { Coins, Sprout, ShoppingCart, DollarSign, Expand, Save, Settings, Plus, Clock, MapPin, TrendingUp, Store, ChefHat, Target, BookOpen, ArrowLeft, Home } from "lucide-react";
 import { Kitchen } from "@/components/kitchen";
 import { ChallengePanel } from "@/components/ChallengePanel";
 import { HeaderAd, FooterAd } from "@/components/AdBanner";
@@ -13,10 +13,15 @@ import { RewardedAdButton } from "@/components/RewardedAdButton";
 import { DailyCoinsButton } from "@/components/DailyCoinsButton";
 import { XPDisplay, XPLevelChart } from "@/components/XPDisplay";
 import { useState } from "react";
+import { Link } from "wouter";
 
 const PLAYER_ID = "default";
 
-export default function Game() {
+interface GameProps {
+  showNavigation?: boolean;
+}
+
+export default function Game({ showNavigation = false }: GameProps) {
   const { toast } = useToast();
   const [showKitchen, setShowKitchen] = useState(false);
   const [showChallenges, setShowChallenges] = useState(false);
@@ -432,6 +437,27 @@ export default function Game() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-200 via-orange-100 to-orange-300 overflow-x-hidden">
+      {/* Navigation Header - only show when showNavigation is true */}
+      {showNavigation && (
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-green-200 dark:border-green-700 relative z-20">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back to Map
+                </Button>
+              </Link>
+              <div className="h-6 w-px bg-green-200 dark:bg-green-700"></div>
+              <h1 className="text-xl font-semibold text-green-800 dark:text-green-200 flex items-center">
+                <Home className="w-5 h-5 mr-2" />
+                Farm Field
+              </h1>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Decorative autumn leaves */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-10 left-10 text-6xl text-deep-red opacity-20 animate-bounce-gentle">🍁</div>
