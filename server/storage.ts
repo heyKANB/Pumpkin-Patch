@@ -872,6 +872,8 @@ export class MemStorage implements IStorage {
 
   // Daily coins system
   async collectDailyCoins(playerId: string): Promise<{ success: boolean; message: string; coinsReceived?: number }> {
+    console.log('🪙 DatabaseStorage: collectDailyCoins called for player:', playerId);
+    
     const player = await this.getPlayer(playerId);
     if (!player) {
       return { success: false, message: "Player not found" };

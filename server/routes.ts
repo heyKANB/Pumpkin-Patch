@@ -44,13 +44,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Include daily coin collection status
+      console.log('🪙 Routes: Getting daily coins status for player:', req.params.id);
       const dailyCoins = await storage.canCollectDailyCoins(req.params.id);
+      console.log('🪙 Routes: Daily coins status result:', dailyCoins);
       
-      res.json({ 
+      const responseData = { 
         ...player, 
         canCollectDailyCoins: dailyCoins.canCollect,
         hoursUntilNextDaily: dailyCoins.hoursUntilNext 
+      };
+      
+      console.log('🪙 Routes: Player response with daily coins:', {
+        id: responseData.id,
+        coins: responseData.coins,
+        canCollectDailyCoins: responseData.canCollectDailyCoins,
+        hoursUntilNextDaily: responseData.hoursUntilNextDaily,
+        lastDailyCollection: responseData.lastDailyCollection
       });
+      
+      res.json(responseData);
     } catch (error) {
       res.status(500).json({ message: "Failed to get player" });
     }
@@ -657,16 +669,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Collect daily coins
   app.post("/api/collect-daily-coins", async (req, res) => {
     try {
+      console.log('🪙 Routes: Daily coins collection request received:', req.body);
       const validatedData = collectDailyCoinsSchema.parse(req.body);
       const { playerId } = validatedData;
 
+      console.log('🪙 Routes: Calling storage.collectDailyCoins for player:', playerId);
       const result = await storage.collectDailyCoins(playerId);
+      console.log('🪙 Routes: Collection result:', result);
       
       if (!result.success) {
+        console.log('🪙 Routes: Collection failed:', result.message);
         return res.status(400).json({ message: result.message });
       }
 
       const updatedPlayer = await storage.getPlayer(playerId);
+      console.log('🪙 Routes: Updated player after collection:', { 
+        id: updatedPlayer?.id, 
+        coins: updatedPlayer?.coins,
+        lastDailyCollection: updatedPlayer?.lastDailyCollection
+      });
       
       res.json({ 
         player: updatedPlayer,
@@ -674,6 +695,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         coinsReceived: result.coinsReceived
       });
     } catch (error) {
+      console.error('🪙 Routes: Error in daily coins collection:', error);
       res.status(500).json({ message: "Failed to collect daily coins" });
     }
   });
@@ -782,6 +804,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fulfill order" });
+    }
+  });
+
+  // Debug endpoint for daily coins (TestFlight debugging)
+  app.get("/api/debug/daily-coins/:playerId", async (req, res) => {
+    try {
+      const playerId = req.params.playerId;
+      console.log('🛠️ Debug: Daily coins debug requested for player:', playerId);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      const dailyCoins = await storage.canCollectDailyCoins(playerId);
+      const now = new Date();
+      
+      const debugInfo = {
+        playerId,
+        currentTime: now.toISOString(),
+        lastDailyCollection: player.lastDailyCollection?.toISOString() || null,
+        canCollect: dailyCoins.canCollect,
+        hoursUntilNext: dailyCoins.hoursUntilNext,
+        playerCoins: player.coins,
+        timeSinceLastCollection: player.lastDailyCollection ? 
+          Math.round((now.getTime() - player.lastDailyCollection.getTime()) / (1000 * 60 * 60) * 100) / 100 : null
+      };
+      
+      console.log('🛠️ Debug: Daily coins debug info:', debugInfo);
+      res.json(debugInfo);
+    } catch (error) {
+      console.error('🛠️ Debug: Error getting daily coins debug info:', error);
+      res.status(500).json({ message: "Debug failed", error: error?.toString() });
+    }
+  });
+
+  // Reset daily coins timer (for testing purposes)
+  app.post("/api/debug/reset-daily-coins/:playerId", async (req, res) => {
+    try {
+      const playerId = req.params.playerId;
+      console.log('🛠️ Debug: Resetting daily coins timer for player:', playerId);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Reset the lastDailyCollection to null to allow immediate collection
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        lastDailyCollection: null
+      });
+
+      console.log('🛠️ Debug: Daily coins timer reset successfully');
+      res.json({ 
+        success: true, 
+        message: "Daily coins timer reset - you can now collect coins",
+        player: updatedPlayer
+      });
+    } catch (error) {
+      console.error('🛠️ Debug: Error resetting daily coins timer:', error);
+      res.status(500).json({ message: "Failed to reset timer", error: error?.toString() });
     }
   });
 

@@ -16,6 +16,14 @@ export function DailyCoinsButton({ playerId, canCollect, hoursUntilNext }: Daily
   const queryClient = useQueryClient();
   const [isCollecting, setIsCollecting] = useState(false);
 
+  // Enhanced logging for TestFlight debugging
+  console.log('🪙 DailyCoinsButton: Rendered with props:', { 
+    playerId, 
+    canCollect, 
+    hoursUntilNext,
+    currentTime: new Date().toISOString()
+  });
+
   const collectDailyCoins = useMutation({
     mutationFn: async () => {
       console.log('🪙 Attempting to collect daily coins for player:', playerId);
