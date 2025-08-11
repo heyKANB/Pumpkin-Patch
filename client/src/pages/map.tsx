@@ -175,23 +175,30 @@ export default function Map() {
               {isLocationUnlocked(location) ? (
                 <Link href={location.route}>
                   <div className="relative transform hover:scale-110 transition-all duration-300">
+                    {/* Permanent location label - always visible */}
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 text-white text-sm font-bold bg-amber-800 bg-opacity-90 px-3 py-1 rounded-full shadow-lg border-2 border-amber-400 whitespace-nowrap">
+                      {location.name}
+                    </div>
+                    
                     {/* Clickable area overlay */}
                     <div className="w-20 h-20 bg-amber-400 bg-opacity-0 hover:bg-opacity-20 rounded-full border-2 border-transparent hover:border-amber-300 transition-all duration-300 flex items-center justify-center">
                       <location.icon className="w-8 h-8 text-amber-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                    
-                    {/* Location label */}
-                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-white text-sm font-semibold bg-black bg-opacity-80 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-amber-400 whitespace-nowrap">
-                      {location.name}
                     </div>
                   </div>
                 </Link>
               ) : (
                 <div className="relative">
+                  {/* Locked location label */}
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 text-white text-sm font-bold bg-gray-600 bg-opacity-90 px-3 py-1 rounded-full shadow-lg border-2 border-gray-400 whitespace-nowrap">
+                    {location.name}
+                  </div>
+                  
                   <div className="w-20 h-20 bg-gray-500 bg-opacity-30 rounded-full border-2 border-gray-400 flex items-center justify-center cursor-not-allowed">
                     <location.icon className="w-8 h-8 text-gray-500" />
                   </div>
-                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-gray-400 text-sm font-semibold bg-black bg-opacity-80 px-3 py-1 rounded-full whitespace-nowrap">
+                  
+                  {/* Level requirement label */}
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs font-semibold bg-black bg-opacity-80 px-2 py-1 rounded-full whitespace-nowrap">
                     Level {location.levelRequired} Required
                   </div>
                 </div>
