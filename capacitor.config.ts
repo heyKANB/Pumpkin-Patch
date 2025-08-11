@@ -4,7 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.huntergames.pumpkinpatch',
   appName: 'Pumpkin Patch',
   webDir: 'dist/public',
-  version: '2.0.5',
+  version: '2.0.6',
 
   server: {
     androidScheme: 'https',
