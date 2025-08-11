@@ -18,10 +18,18 @@ export function DailyCoinsButton({ playerId, canCollect, hoursUntilNext }: Daily
 
   const collectDailyCoins = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/collect-daily-coins", { playerId });
-      return response;
+      console.log('🪙 Attempting to collect daily coins for player:', playerId);
+      try {
+        const response = await apiRequest("POST", "/api/collect-daily-coins", { playerId });
+        console.log('🪙 Daily coins collection response:', response);
+        return response;
+      } catch (error) {
+        console.error('🪙 Daily coins collection error:', error);
+        throw error;
+      }
     },
     onSuccess: (data: any) => {
+      console.log('🪙 Daily coins collected successfully:', data);
       toast({
         title: "Daily Coins Collected!",
         description: `You received ${data.coinsReceived} coins!`,
@@ -30,9 +38,11 @@ export function DailyCoinsButton({ playerId, canCollect, hoursUntilNext }: Daily
       setIsCollecting(false);
     },
     onError: (error: any) => {
+      console.error('🪙 Daily coins collection failed:', error);
+      const errorMessage = error?.message || error?.toString() || "Unknown error occurred";
       toast({
         title: "Collection Failed",
-        description: error.message || "Could not collect daily coins",
+        description: `Error: ${errorMessage}. Check console for details.`,
         variant: "destructive",
       });
       setIsCollecting(false);
@@ -40,8 +50,13 @@ export function DailyCoinsButton({ playerId, canCollect, hoursUntilNext }: Daily
   });
 
   const handleCollect = () => {
-    if (!canCollect || isCollecting) return;
+    console.log('🪙 Handle collect called - canCollect:', canCollect, 'isCollecting:', isCollecting);
+    if (!canCollect || isCollecting) {
+      console.log('🪙 Collection blocked - canCollect:', canCollect, 'isCollecting:', isCollecting);
+      return;
+    }
     setIsCollecting(true);
+    console.log('🪙 Starting daily coins collection...');
     collectDailyCoins.mutate();
   };
 

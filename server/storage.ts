@@ -50,6 +50,13 @@ export interface IStorage {
   // Level system
   gainExperience(playerId: string, xp: number): Promise<{ player: Player; leveledUp: boolean; newLevel?: number }>;
   checkLevelUnlocks(player: Player): { appleSeeds: boolean; kitchen: boolean };
+  
+  // Daily coins system
+  collectDailyCoins(playerId: string): Promise<{ success: boolean; message: string; coinsReceived?: number }>;
+  canCollectDailyCoins(playerId: string): Promise<{ canCollect: boolean; hoursUntilNext?: number }>;
+  
+  // Level unlocking
+  unlockNextLevel(playerId: string): Promise<{ success: boolean; newLevel: number; toolsRequired: number; message: string }>;
 }
 
 export class MemStorage implements IStorage {
@@ -861,6 +868,123 @@ export class MemStorage implements IStorage {
       appleSeeds: player.level >= 2,
       kitchen: player.level >= 2
     };
+  }
+
+  // Daily coins system
+  async collectDailyCoins(playerId: string): Promise<{ success: boolean; message: string; coinsReceived?: number }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      return { success: false, message: "Player not found" };
+    }
+
+    // Check if 24 hours have passed since last collection
+    const now = new Date();
+    const lastCollection = player.lastDailyCollection;
+    
+    if (lastCollection) {
+      const timeSinceLastCollection = now.getTime() - lastCollection.getTime();
+      const hoursElapsed = timeSinceLastCollection / (1000 * 60 * 60);
+      
+      if (hoursElapsed < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursElapsed);
+        return { 
+          success: false, 
+          message: `Daily coins already collected. Try again in ${hoursRemaining} hours.` 
+        };
+      }
+    }
+
+    // Give 5 free coins
+    const updatedPlayer = await this.updatePlayer(playerId, {
+      coins: player.coins + 5,
+      lastDailyCollection: now,
+    });
+
+    if (!updatedPlayer) {
+      return { success: false, message: "Failed to update player" };
+    }
+
+    return {
+      success: true,
+      message: "Collected 5 daily coins!",
+      coinsReceived: 5
+    };
+  }
+
+  async canCollectDailyCoins(playerId: string): Promise<{ canCollect: boolean; hoursUntilNext?: number }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) return { canCollect: false };
+
+    const lastCollection = player.lastDailyCollection;
+    if (!lastCollection) return { canCollect: true };
+
+    const now = new Date();
+    const timeSinceLastCollection = now.getTime() - lastCollection.getTime();
+    const hoursElapsed = timeSinceLastCollection / (1000 * 60 * 60);
+
+    if (hoursElapsed >= 24) {
+      return { canCollect: true };
+    } else {
+      return { 
+        canCollect: false, 
+        hoursUntilNext: Math.ceil(24 - hoursElapsed) 
+      };
+    }
+  }
+
+  async unlockNextLevel(playerId: string): Promise<{ success: boolean; newLevel: number; toolsRequired: number; message: string }> {
+    const player = await this.getPlayer(playerId);
+    if (!player) {
+      return { success: false, newLevel: 0, toolsRequired: 0, message: "Player not found" };
+    }
+
+    if (player.level < 10) {
+      return { 
+        success: false, 
+        newLevel: player.level, 
+        toolsRequired: 0, 
+        message: "Cannot manually unlock levels below 10. Level up through XP first." 
+      };
+    }
+
+    const nextLevel = player.level + 1;
+    const toolsRequired = this.getToolsRequiredForLevel(nextLevel);
+    
+    if (player.tools < toolsRequired) {
+      return { 
+        success: false, 
+        newLevel: player.level, 
+        toolsRequired, 
+        message: `Need ${toolsRequired} tools to unlock level ${nextLevel}` 
+      };
+    }
+
+    const updatedPlayer = await this.updatePlayer(playerId, {
+      level: nextLevel,
+      tools: player.tools - toolsRequired,
+    });
+
+    if (!updatedPlayer) {
+      return { 
+        success: false, 
+        newLevel: player.level, 
+        toolsRequired, 
+        message: "Failed to unlock level" 
+      };
+    }
+
+    return {
+      success: true,
+      newLevel: nextLevel,
+      toolsRequired,
+      message: `Unlocked level ${nextLevel}! Used ${toolsRequired} tools.`
+    };
+  }
+
+  private getToolsRequiredForLevel(level: number): number {
+    if (level <= 10) return 0;
+    // Exponential cost: 5, 10, 20, 40, 80...
+    return Math.pow(2, level - 11) * 5;
   }
 
   // Customer Order operations
