@@ -1214,9 +1214,10 @@ export class MemStorage implements IStorage {
 export class DatabaseStorage implements IStorage {
   async getPlayer(id: string): Promise<Player | undefined> {
     try {
+      console.log(`🔍 DatabaseStorage: Looking for player with ID: ${id}`);
       const [player] = await db.select().from(players).where(eq(players.id, id));
       if (!player) {
-        console.log(`Creating new player with ID: ${id}`);
+        console.log(`🆕 Creating new player with ID: ${id} - Starting resources: 25 coins, 3 pumpkin seeds, 3 apple seeds`);
         // Create new player if not found with the provided ID
         const [newPlayer] = await db
           .insert(players)
@@ -1245,11 +1246,28 @@ export class DatabaseStorage implements IStorage {
         await this.generateDailyChallenges(newPlayer.id);
         await this.generateCustomerOrders(newPlayer.id);
         
+        console.log(`✅ Successfully created new player:`, {
+          id: newPlayer.id,
+          coins: newPlayer.coins,
+          seeds: newPlayer.seeds,
+          appleSeeds: newPlayer.appleSeeds,
+          level: newPlayer.level
+        });
+        
         return newPlayer;
       }
+      
+      console.log(`🔍 Found existing player:`, {
+        id: player.id,
+        coins: player.coins,
+        seeds: player.seeds,
+        appleSeeds: player.appleSeeds,
+        level: player.level
+      });
       return player;
     } catch (error) {
-      console.error('Database error in getPlayer:', error);
+      console.error(`❌ Error in getPlayer(${id}):`, error);
+      console.error('Database connection status:', error.message);
       return undefined;
     }
   }
