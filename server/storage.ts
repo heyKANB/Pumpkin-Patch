@@ -243,57 +243,7 @@ export class MemStorage implements IStorage {
     return { newLevel, leveledUp, experience: newExperience };
   }
 
-  async unlockNextLevel(playerId: string): Promise<{ success: boolean; newLevel: number; toolsRequired: number; message: string }> {
-    const player = await this.getPlayer(playerId);
-    if (!player) throw new Error("Player not found");
 
-    // Only allow tool-based unlocking after level 10
-    if (player.level < 10) {
-      return { 
-        success: false, 
-        newLevel: player.level, 
-        toolsRequired: 0,
-        message: "Tool-based level unlocking is only available after level 10" 
-      };
-    }
-
-    // Calculate tools required (increases with level)
-    const toolsRequired = Math.max(1, (player.level - 9) * 2); // 2 tools for level 11, 4 for level 12, etc.
-    
-    if (player.tools < toolsRequired) {
-      return { 
-        success: false, 
-        newLevel: player.level, 
-        toolsRequired,
-        message: `Need ${toolsRequired} tools to unlock level ${player.level + 1}. You have ${player.tools} tools.` 
-      };
-    }
-
-    // Check if player has enough experience for the level
-    const experienceRequired = player.level * 100;
-    if (player.experience < experienceRequired) {
-      return { 
-        success: false, 
-        newLevel: player.level, 
-        toolsRequired,
-        message: `Need ${experienceRequired} XP to unlock level ${player.level + 1}. You have ${player.experience} XP.` 
-      };
-    }
-
-    // Unlock the level
-    const newLevel = player.level + 1;
-    await this.updatePlayer(playerId, { 
-      level: newLevel,
-      tools: player.tools - toolsRequired
-    });
-
-    return { 
-      success: true, 
-      newLevel, 
-      toolsRequired,
-      message: `Level ${newLevel} unlocked! Used ${toolsRequired} tools.` 
-    };
-  }
 
   async getPlayerPlots(playerId: string): Promise<Plot[]> {
     return Array.from(this.plots.values()).filter(plot => plot.playerId === playerId);

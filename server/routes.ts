@@ -918,6 +918,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Environment debug endpoint for TestFlight debugging
+  app.get("/api/debug/environment", async (req, res) => {
+    try {
+      const player = await storage.getPlayer("default");
+      const currentTime = new Date().toISOString();
+      
+      res.json({
+        timestamp: currentTime,
+        nodeEnv: process.env.NODE_ENV || "undefined",
+        databaseConnected: !!process.env.DATABASE_URL,
+        storageType: storage.constructor.name,
+        version: "2.0.10",
+        buildNumber: "15",
+        player: player ? {
+          id: player.id,
+          coins: player.coins,
+          level: player.level,
+          fieldSize: player.fieldSize,
+          lastDailyCollection: player.lastDailyCollection
+        } : null,
+        features: {
+          dailyCoinsEnabled: true,
+          bonusCoinsDistributed: true,
+          databasePersistence: true
+        }
+      });
+    } catch (error) {
+      console.error('❌ Environment debug error:', error);
+      res.status(500).json({ 
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        version: "2.0.10"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
