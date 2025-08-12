@@ -868,6 +868,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // One-time coin bonus for all players (admin endpoint)
+  app.post("/api/admin/bonus-coins", async (req, res) => {
+    try {
+      const { bonusAmount = 25, adminKey } = req.body;
+      
+      // Simple admin protection (in production, use proper authentication)
+      if (adminKey !== "pumpkin-patch-2025") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      console.log(`🎁 Admin: Giving ${bonusAmount} bonus coins to all players`);
+      
+      // Get all current players
+      const allPlayers = await storage.getAllPlayers();
+      console.log(`🎁 Admin: Found ${allPlayers.length} players to reward`);
+      
+      const results = [];
+      
+      // Give bonus coins to each player
+      for (const player of allPlayers) {
+        const oldCoins = player.coins;
+        const newCoins = oldCoins + bonusAmount;
+        
+        await storage.updatePlayer(player.id, { coins: newCoins });
+        
+        results.push({
+          playerId: player.id,
+          oldCoins,
+          newCoins,
+          bonusGiven: bonusAmount
+        });
+        
+        console.log(`🎁 Admin: Player ${player.id} - ${oldCoins} → ${newCoins} coins (+${bonusAmount})`);
+      }
+
+      console.log(`🎁 Admin: Successfully gave bonus coins to ${results.length} players`);
+      
+      res.json({ 
+        success: true,
+        message: `Successfully gave ${bonusAmount} bonus coins to ${results.length} players`,
+        playersRewarded: results.length,
+        bonusAmount,
+        results
+      });
+    } catch (error) {
+      console.error('🎁 Admin: Error giving bonus coins:', error);
+      res.status(500).json({ message: "Failed to give bonus coins", error: error?.toString() });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

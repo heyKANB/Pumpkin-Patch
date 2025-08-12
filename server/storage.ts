@@ -7,6 +7,7 @@ import { eq, and, ne, isNotNull, lt, gte } from "drizzle-orm";
 export interface IStorage {
   // Player operations
   getPlayer(id: string): Promise<Player | undefined>;
+  getAllPlayers(): Promise<Player[]>;
   createPlayer(player: InsertPlayer): Promise<Player>;
   updatePlayer(id: string, updates: Partial<Player>): Promise<Player | undefined>;
   
@@ -106,6 +107,10 @@ export class MemStorage implements IStorage {
 
   private getPlotKey(playerId: string, row: number, col: number): string {
     return `${playerId}-${row}-${col}`;
+  }
+
+  async getAllPlayers(): Promise<Player[]> {
+    return Array.from(this.players.values());
   }
 
   async getPlayer(id: string): Promise<Player | undefined> {
@@ -1271,6 +1276,18 @@ export class DatabaseStorage implements IStorage {
       console.error(`❌ Error in getPlayer(${id}):`, error);
       console.error('Database connection status:', error.message);
       return undefined;
+    }
+  }
+
+  async getAllPlayers(): Promise<Player[]> {
+    try {
+      console.log('🔍 DatabaseStorage: Getting all players for admin operation');
+      const allPlayers = await db.select().from(players);
+      console.log(`🔍 DatabaseStorage: Found ${allPlayers.length} total players`);
+      return allPlayers;
+    } catch (error) {
+      console.error('❌ Error in getAllPlayers:', error);
+      return [];
     }
   }
 
