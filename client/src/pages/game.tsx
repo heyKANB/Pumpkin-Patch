@@ -474,7 +474,7 @@ export default function Game({ showNavigation = false }: GameProps) {
               <div className="text-6xl mr-4 animate-pulse-gentle">🎃</div>
               <div>
                 <h1 className="font-bold text-4xl lg:text-5xl text-golden drop-shadow-lg">Pumpkin Patch</h1>
-                <p className="text-cream/80 font-medium">Autumn Farming Adventure <span className="text-xs opacity-75">v2.0.8</span></p>
+                <p className="text-cream/80 font-medium">Autumn Farming Adventure <span className="text-xs opacity-75">v2.0.9</span></p>
               </div>
             </div>
 
