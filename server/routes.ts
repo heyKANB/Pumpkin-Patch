@@ -841,6 +841,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix player initialization for TestFlight/Production (one-time repair)
+  app.post("/api/player/:id/fix-initialization", async (req, res) => {
+    try {
+      const playerId = req.params.id;
+      console.log('🔧 Routes: Fixing player initialization for:', playerId);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        console.log('🔧 Routes: Player not found');
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Check if player needs initialization fix (for TestFlight users with insufficient starting resources)
+      // New players should have at least 25 coins, 3 seeds, and 3 apple seeds
+      const hasLowCoins = player.coins < 10; // Very low coins indicate initialization issue
+      const hasMissingSeeds = (player.seeds + player.pumpkins) < 2; // Few total pumpkin resources
+      const hasMissingAppleSeeds = (player.appleSeeds + player.apples) < 2; // Few total apple resources
+      
+      const needsInitializationFix = hasLowCoins && (hasMissingSeeds || hasMissingAppleSeeds);
+      
+      if (!needsInitializationFix) {
+        return res.json({ 
+          success: false, 
+          message: "Player already has sufficient starting resources",
+          playerData: {
+            coins: player.coins,
+            seeds: player.seeds,
+            pumpkins: player.pumpkins,
+            appleSeeds: player.appleSeeds,
+            apples: player.apples,
+            level: player.level
+          }
+        });
+      }
+
+      // Apply initialization fix - give proper starting resources
+      const updates: any = {};
+      
+      // Ensure minimum 25 coins
+      if (player.coins < 25) {
+        updates.coins = Math.max(25, player.coins + 20);
+      }
+      
+      // Ensure minimum 3 pumpkin seeds (if they have few total pumpkin resources)
+      if ((player.seeds + player.pumpkins) < 3) {
+        updates.seeds = Math.max(3, player.seeds);
+      }
+      
+      // Ensure minimum 3 apple seeds (if they have few total apple resources)
+      if ((player.appleSeeds + player.apples) < 3) {
+        updates.appleSeeds = Math.max(3, player.appleSeeds);
+      }
+
+      const updatedPlayer = await storage.updatePlayer(playerId, updates);
+      
+      console.log('🔧 Routes: Player initialization fixed:', {
+        old: { coins: player.coins, seeds: player.seeds, appleSeeds: player.appleSeeds },
+        new: { coins: updatedPlayer?.coins, seeds: updatedPlayer?.seeds, appleSeeds: updatedPlayer?.appleSeeds }
+      });
+
+      res.json({
+        success: true,
+        message: "Player initialization fixed",
+        changes: updates,
+        player: updatedPlayer
+      });
+    } catch (error) {
+      console.error('🔧 Routes: Error fixing player initialization:', error);
+      res.status(500).json({ message: "Failed to fix player initialization" });
+    }
+  });
+
   // Debug endpoint for daily coins (TestFlight debugging)
   app.get("/api/debug/daily-coins/:playerId", async (req, res) => {
     try {

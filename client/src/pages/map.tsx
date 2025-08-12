@@ -1,8 +1,10 @@
 import { Link } from "wouter";
-import { Sprout, ChefHat, ShoppingCart, Store, MapPin } from "lucide-react";
+import { Sprout, ChefHat, ShoppingCart, Store, MapPin, Settings, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { type Player } from "@shared/schema";
 import { XPDisplay } from "@/components/XPDisplay";
 
@@ -60,6 +62,8 @@ const mapLocations: MapLocation[] = [
 ];
 
 export default function Map() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: player } = useQuery<Player>({
     queryKey: ["/api/player", PLAYER_ID],
   });
@@ -69,6 +73,41 @@ export default function Map() {
     if (!player) return false;
     return player.level >= location.levelRequired && location.available;
   };
+
+  // Fix player initialization mutation for TestFlight users
+  const fixInitializationMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/player/${PLAYER_ID}/fix-initialization`),
+    onSuccess: async (response) => {
+      const data = await response.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/player", PLAYER_ID] });
+      
+      if (data.success) {
+        toast({
+          title: "Starting Resources Restored!",
+          description: `Added ${data.changes.coins || 0} coins, ${data.changes.seeds || 0} pumpkin seeds, ${data.changes.appleSeeds || 0} apple seeds`,
+        });
+      } else {
+        toast({
+          title: "Resources Already Sufficient",
+          description: data.message,
+          variant: "default"
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Failed to restore resources",
+        description: "Please try again or contact support",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Check if player might need initialization fix (very low resources)
+  const mightNeedInitFix = player && player.coins < 10 && (
+    (player.seeds + player.pumpkins) < 2 || 
+    (player.appleSeeds + player.apples) < 2
+  );
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-800 via-amber-900 to-orange-800 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950 relative overflow-hidden">
       {/* Mountain Silhouettes */}
@@ -208,13 +247,33 @@ export default function Map() {
         </div>
       </div>
       
-      {/* Footer with daily coins button */}
+      {/* Footer with helper buttons */}
       <div className="relative z-10 text-center mt-8 pb-8">
-        <div className="flex justify-center items-center space-x-4">
+        <div className="flex justify-center items-center space-x-4 mb-4">
           <div className="text-amber-200 dark:text-amber-100 text-sm">
             Click on buildings to visit different areas of your farm!
           </div>
         </div>
+        
+        {/* Emergency resource fix button for TestFlight users */}
+        {mightNeedInitFix && (
+          <div className="flex justify-center">
+            <Button
+              onClick={() => fixInitializationMutation.mutate()}
+              disabled={fixInitializationMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="bg-red-900/80 border-red-400 text-red-100 hover:bg-red-800/90 hover:text-white backdrop-blur-sm"
+            >
+              {fixInitializationMutation.isPending ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Settings className="w-4 h-4 mr-2" />
+              )}
+              Restore Starting Resources
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
