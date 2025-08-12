@@ -46,11 +46,14 @@ export default function Storefront() {
     queryKey: ["/api/player", playerId],
   });
 
-  // Fetch customer orders
-  const { data: orders = [], isLoading: ordersLoading } = useQuery<CustomerOrder[]>({
+  // Fetch customer orders with error handling
+  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useQuery<CustomerOrder[]>({
     queryKey: ["/api/player", playerId, "orders"],
     refetchInterval: 30000, // Refresh orders every 30 seconds
+    retry: 2, // Limit retries to prevent infinite loops
   });
+
+  const orders = ordersData || [];
 
   // Generate new orders mutation
   const generateOrdersMutation = useMutation({
@@ -89,13 +92,18 @@ export default function Storefront() {
     },
   });
 
-  // Auto-generate orders when component mounts if none exist or when orders are fulfilled
+  // Auto-generate orders with rate limiting to prevent infinite loops
   useEffect(() => {
     const activeOrders = orders.filter(order => order.status === "pending");
-    if (activeOrders.length === 0 && !ordersLoading && !generateOrdersMutation.isPending) {
-      generateOrdersMutation.mutate();
+    if (activeOrders.length === 0 && !ordersLoading && !generateOrdersMutation.isPending && !ordersError) {
+      // Add a delay to prevent immediate retries in case of network issues
+      const timer = setTimeout(() => {
+        generateOrdersMutation.mutate();
+      }, 2000); // 2 second delay
+      
+      return () => clearTimeout(timer);
     }
-  }, [orders, ordersLoading]);
+  }, [orders, ordersLoading, ordersError]);
 
   const handleFulfillOrder = (orderId: string) => {
     fulfillOrderMutation.mutate(orderId);
@@ -257,7 +265,27 @@ export default function Storefront() {
           </TabsList>
 
           <TabsContent value="orders">
-            {pendingOrders.length === 0 ? (
+            {ordersError ? (
+              <Card className="border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-950">
+                <CardContent className="text-center py-12">
+                  <Store className="w-16 h-16 mx-auto text-red-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+                    Connection Issue
+                  </h3>
+                  <p className="text-red-600 dark:text-red-400 mb-4">
+                    Unable to load customer orders. Please check your internet connection.
+                  </p>
+                  <Button 
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/player", playerId, "orders"] })}
+                    variant="outline"
+                    className="border-red-300 text-red-700 hover:bg-red-100"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Try Again
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : pendingOrders.length === 0 ? (
               <Card className="border-orange-200 dark:border-orange-700">
                 <CardContent className="text-center py-12">
                   <Store className="w-16 h-16 mx-auto text-orange-400 mb-4" />
@@ -268,14 +296,25 @@ export default function Storefront() {
                     New customer orders will appear here automatically.
                   </p>
                   {generateOrdersMutation.isPending ? (
-                    <div className="flex items-center text-orange-600">
+                    <div className="flex items-center justify-center text-orange-600">
                       <RefreshCw className="w-6 h-6 mr-2 animate-spin" />
                       Generating customer orders...
                     </div>
                   ) : (
-                    <p className="text-gray-500 dark:text-gray-400">
-                      Orders will appear automatically when customers visit your store.
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Orders will appear automatically when customers visit your store.
+                      </p>
+                      <Button 
+                        onClick={() => generateOrdersMutation.mutate()}
+                        variant="outline"
+                        className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                        disabled={generateOrdersMutation.isPending}
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Generate Orders Now
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>

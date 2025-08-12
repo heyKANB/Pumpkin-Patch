@@ -765,22 +765,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get player's orders
   app.get("/api/player/:id/orders", async (req, res) => {
     try {
+      console.log('🛒 Routes: Fetching orders for player:', req.params.id);
+      
+      // Ensure player exists
+      const player = await storage.getPlayer(req.params.id);
+      if (!player) {
+        console.log('🛒 Routes: Player not found for orders request');
+        return res.status(404).json({ message: "Player not found" });
+      }
+
       await storage.expireOldOrders(); // Clean up expired orders first
       const orders = await storage.getPlayerOrders(req.params.id);
+      
+      console.log('🛒 Routes: Retrieved orders, count:', orders.length);
       res.json(orders);
     } catch (error) {
-      res.status(500).json({ message: "Failed to get orders" });
+      console.error('🛒 Routes: Failed to get orders:', error);
+      res.status(500).json({ 
+        message: "Failed to get orders",
+        error: error.message,
+        details: "Check database connection and customer_orders table"
+      });
     }
   });
 
   // Generate new customer orders for a player
   app.post("/api/player/:id/orders/generate", async (req, res) => {
     try {
+      console.log('🛒 Routes: Generating customer orders for player:', req.params.id);
+      
+      // Ensure player exists before generating orders
+      const player = await storage.getPlayer(req.params.id);
+      if (!player) {
+        console.log('🛒 Routes: Player not found, cannot generate orders');
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      console.log('🛒 Routes: Player found, generating orders...');
       await storage.generateCustomerOrders(req.params.id);
+      
       const orders = await storage.getPlayerOrders(req.params.id);
+      console.log('🛒 Routes: Orders generated successfully, count:', orders.length);
+      
       res.json({ orders, message: "New orders generated!" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to generate orders" });
+      console.error('🛒 Routes: Failed to generate orders:', error);
+      res.status(500).json({ 
+        message: "Failed to generate orders", 
+        error: error.message,
+        details: "Check if customer_orders table exists and player has valid data"
+      });
     }
   });
 
