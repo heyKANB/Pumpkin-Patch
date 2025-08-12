@@ -15,7 +15,7 @@ TestFlight version 2.0.9 (build 14) does not reflect recent development changes:
 ## Solutions Implemented
 
 ### 1. Version Update (✓ Complete)
-- Updated version from 2.0.9 build 14 → 2.0.10 build 15
+- Updated version from 2.0.9 build 14 → 2.0.11 build 16
 - Updated `codemagic.yaml` and `replit.md` for consistency
 
 ### 2. Database Strategy
@@ -32,7 +32,7 @@ TestFlight version 2.0.9 (build 14) does not reflect recent development changes:
 - Verified production build completes successfully
 - Assets properly generated in `dist/public/`
 
-## Next Steps for TestFlight v2.0.10
+## Next Steps for TestFlight v2.0.11
 
 ### For Development Team:
 1. **Trigger New Build**: Commit changes to trigger CodeMagic build 15
@@ -43,8 +43,8 @@ TestFlight version 2.0.9 (build 14) does not reflect recent development changes:
 3. **Environment Verification**: Test `/api/debug/environment` in TestFlight
 4. **Feature Verification**: Test all recent features in TestFlight build
 
-### Verification Checklist for TestFlight v2.0.10:
-- [ ] Version shows 2.0.10 build 15
+### Verification Checklist for TestFlight v2.0.11:
+- [ ] Version shows 2.0.11 build 16
 - [ ] Players have bonus coins (39-55 coins range)
 - [ ] Daily coins reset button functional
 - [ ] Farm layout spacing fixed
@@ -55,7 +55,7 @@ TestFlight version 2.0.9 (build 14) does not reflect recent development changes:
 - Build process: `NODE_ENV=production npm run build`
 - Assets path: `dist/public/` (confirmed correct)
 - Database: Ensure production `DATABASE_URL` is properly configured
-- Version: Now set to 2.0.10 build 15
+- Version: Now set to 2.0.11 build 16
 
 ## Database Migration Strategy
 Since production and development use separate databases:
@@ -64,7 +64,7 @@ Since production and development use separate databases:
 3. Verify player initialization works in production
 
 ## Emergency Rollback
-If v2.0.10 has issues:
+If v2.0.11 has issues:
 1. Revert `codemagic.yaml` to previous stable version
 2. Use Replit rollback functionality for code changes
 3. Restore database snapshot if needed

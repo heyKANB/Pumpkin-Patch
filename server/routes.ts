@@ -929,8 +929,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nodeEnv: process.env.NODE_ENV || "undefined",
         databaseConnected: !!process.env.DATABASE_URL,
         storageType: storage.constructor.name,
-        version: "2.0.10",
-        buildNumber: "15",
+        version: "2.0.11",
+        buildNumber: "16",
         player: player ? {
           id: player.id,
           coins: player.coins,
@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: error.message,
         timestamp: new Date().toISOString(),
-        version: "2.0.10"
+        version: "2.0.11"
       });
     }
   });
