@@ -103,6 +103,35 @@ export default function Map() {
     },
   });
 
+  // Emergency reset mutation - forces restoration regardless of current values
+  const emergencyResetMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/player/${PLAYER_ID}/emergency-reset`),
+    onSuccess: async (response) => {
+      const data = await response.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/player", PLAYER_ID] });
+      
+      if (data.success) {
+        toast({
+          title: "Emergency Reset Complete!",
+          description: `Resources reset: ${data.changes.coins > 0 ? `+${data.changes.coins} coins` : ''} ${data.changes.seeds > 0 ? `+${data.changes.seeds} pumpkin seeds` : ''} ${data.changes.appleSeeds > 0 ? `+${data.changes.appleSeeds} apple seeds` : ''}`,
+        });
+      } else {
+        toast({
+          title: "Reset Failed",
+          description: data.message,
+          variant: "destructive"
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Emergency reset failed",
+        description: "Please try again or contact support",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Check if player might need initialization fix (very low resources)
   const mightNeedInitFix = player && player.coins < 10 && (
     (player.seeds + player.pumpkins) < 2 || 
@@ -257,7 +286,7 @@ export default function Map() {
         
         {/* Emergency resource fix button for TestFlight users */}
         {mightNeedInitFix && (
-          <div className="flex justify-center">
+          <div className="flex justify-center flex-col items-center gap-2">
             <Button
               onClick={() => fixInitializationMutation.mutate()}
               disabled={fixInitializationMutation.isPending}
@@ -271,6 +300,21 @@ export default function Map() {
                 <Settings className="w-4 h-4 mr-2" />
               )}
               Restore Starting Resources
+            </Button>
+            
+            <Button
+              onClick={() => emergencyResetMutation.mutate()}
+              disabled={emergencyResetMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="bg-orange-900/80 border-orange-400 text-orange-100 hover:bg-orange-800/90 hover:text-white backdrop-blur-sm text-xs"
+            >
+              {emergencyResetMutation.isPending ? (
+                <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
+              ) : (
+                <span className="w-3 h-3 mr-2">🚨</span>
+              )}
+              Force Reset (If Above Fails)
             </Button>
           </div>
         )}

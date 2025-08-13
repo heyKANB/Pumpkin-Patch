@@ -913,6 +913,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Emergency reset endpoint - forces restoration regardless of current values
+  app.post("/api/player/:id/emergency-reset", async (req, res) => {
+    try {
+      const playerId = req.params.id;
+      console.log('🚨 Routes: Emergency reset for player:', playerId);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        console.log('🚨 Routes: Player not found');
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Force reset to proper starting values
+      const updates = {
+        coins: Math.max(25, player.coins),
+        seeds: Math.max(3, player.seeds),
+        appleSeeds: Math.max(3, player.appleSeeds)
+      };
+
+      const updatedPlayer = await storage.updatePlayer(playerId, updates);
+      
+      // Calculate what was actually changed
+      const changes = {
+        coins: updates.coins - player.coins,
+        seeds: updates.seeds - player.seeds,
+        appleSeeds: updates.appleSeeds - player.appleSeeds
+      };
+      
+      console.log('🚨 Routes: Emergency reset applied:', changes);
+
+      res.json({
+        success: true,
+        message: "Emergency reset completed - starting resources restored",
+        changes,
+        newPlayerData: {
+          coins: updatedPlayer.coins,
+          seeds: updatedPlayer.seeds,
+          appleSeeds: updatedPlayer.appleSeeds,
+          level: updatedPlayer.level
+        }
+      });
+    } catch (error) {
+      console.error('🚨 Routes: Error during emergency reset:', error);
+      res.status(500).json({ message: "Failed to perform emergency reset" });
+    }
+  });
+
   // Debug endpoint for daily coins (TestFlight debugging)
   app.get("/api/debug/daily-coins/:playerId", async (req, res) => {
     try {
