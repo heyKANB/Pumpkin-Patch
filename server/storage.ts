@@ -62,6 +62,9 @@ export interface IStorage {
   // Game reset operations
   clearAllPlayerPlots(playerId: string): Promise<void>;
   clearAllPlayerOvens(playerId: string): Promise<void>;
+  
+  // Admin operations
+  getAllPlayers(): Promise<Player[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -965,6 +968,11 @@ export class MemStorage implements IStorage {
     ovensToRemove.forEach(([key]) => {
       this.ovens.delete(key);
     });
+  }
+
+  // Get all players (for admin operations)
+  async getAllPlayers(): Promise<Player[]> {
+    return Array.from(this.players.values());
   }
 
   // Customer Order operations
@@ -1898,6 +1906,25 @@ export class DatabaseStorage implements IStorage {
         ));
     } catch (error) {
       console.error('Database error in expireOldOrders:', error);
+    }
+  }
+
+  // Game reset operations
+  async clearAllPlayerPlots(playerId: string): Promise<void> {
+    try {
+      await db.delete(plots).where(eq(plots.playerId, playerId));
+      console.log(`🧹 DatabaseStorage: Cleared all plots for player ${playerId}`);
+    } catch (error) {
+      console.error('Database error in clearAllPlayerPlots:', error);
+    }
+  }
+
+  async clearAllPlayerOvens(playerId: string): Promise<void> {
+    try {
+      await db.delete(ovens).where(eq(ovens.playerId, playerId));
+      console.log(`🧹 DatabaseStorage: Cleared all ovens for player ${playerId}`);
+    } catch (error) {
+      console.error('Database error in clearAllPlayerOvens:', error);
     }
   }
 }
