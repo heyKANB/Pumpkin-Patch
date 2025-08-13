@@ -625,11 +625,11 @@ export default function Game({ showNavigation = false }: GameProps) {
       </header>
 
       {/* Header Ad */}
-      <div className="container mx-auto px-4 pt-4 relative z-10">
+      <div className="container mx-auto px-4 pt-2 sm:pt-4 relative z-10">
         <HeaderAd />
       </div>
 
-      <div className="container mx-auto px-4 py-6 relative z-10">
+      <div className="container mx-auto px-4 py-2 sm:py-6 relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           
           {/* Game Info Sidebar */}
