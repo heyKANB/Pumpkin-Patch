@@ -960,6 +960,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete game reset endpoint - resets player to new player starting configuration
+  app.post("/api/player/:id/complete-reset", async (req, res) => {
+    try {
+      const playerId = req.params.id;
+      console.log('🔄 Routes: Complete game reset for player:', playerId);
+      
+      const player = await storage.getPlayer(playerId);
+      if (!player) {
+        console.log('🔄 Routes: Player not found');
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Reset player to new player starting configuration
+      const resetData = {
+        coins: 25,
+        seeds: 3,
+        pumpkins: 0,
+        appleSeeds: 3,
+        apples: 0,
+        pumpkinPies: 0,
+        applePies: 0,
+        fertilizer: 0,
+        level: 1,
+        experience: 0,
+        fieldSize: 3,
+        kitchenSlots: 1,
+        lastDailyCollection: null
+      };
+
+      const updatedPlayer = await storage.updatePlayer(playerId, resetData);
+      
+      // Clear all plots and ovens
+      await storage.clearAllPlayerPlots(playerId);
+      await storage.clearAllPlayerOvens(playerId);
+      
+      console.log('🔄 Routes: Complete game reset successful for player:', playerId);
+
+      res.json({
+        success: true,
+        message: "Game reset complete - welcome back to your new pumpkin patch!",
+        player: updatedPlayer
+      });
+    } catch (error) {
+      console.error('🔄 Routes: Error during complete game reset:', error);
+      res.status(500).json({ message: "Failed to reset game progress" });
+    }
+  });
+
   // Debug endpoint for daily coins (TestFlight debugging)
   app.get("/api/debug/daily-coins/:playerId", async (req, res) => {
     try {

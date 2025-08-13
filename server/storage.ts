@@ -58,6 +58,10 @@ export interface IStorage {
   
   // Level unlocking
   unlockNextLevel(playerId: string): Promise<{ success: boolean; newLevel: number; toolsRequired: number; message: string }>;
+  
+  // Game reset operations
+  clearAllPlayerPlots(playerId: string): Promise<void>;
+  clearAllPlayerOvens(playerId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -942,6 +946,25 @@ export class MemStorage implements IStorage {
     if (level <= 10) return 0;
     // Exponential cost: 5, 10, 20, 40, 80...
     return Math.pow(2, level - 11) * 5;
+  }
+
+  // Game reset operations
+  async clearAllPlayerPlots(playerId: string): Promise<void> {
+    const plotsToRemove = Array.from(this.plots.entries())
+      .filter(([key, plot]) => plot.playerId === playerId);
+    
+    plotsToRemove.forEach(([key]) => {
+      this.plots.delete(key);
+    });
+  }
+
+  async clearAllPlayerOvens(playerId: string): Promise<void> {
+    const ovensToRemove = Array.from(this.ovens.entries())
+      .filter(([key, oven]) => oven.playerId === playerId);
+    
+    ovensToRemove.forEach(([key]) => {
+      this.ovens.delete(key);
+    });
   }
 
   // Customer Order operations

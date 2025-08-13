@@ -7,6 +7,17 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type Player } from "@shared/schema";
 import { XPDisplay } from "@/components/XPDisplay";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const PLAYER_ID = "default";
 
@@ -137,6 +148,29 @@ export default function Map() {
     (player.seeds + player.pumpkins) < 2 || 
     (player.appleSeeds + player.apples) < 2
   );
+
+  // Complete game reset mutation
+  const gameResetMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/player/${PLAYER_ID}/complete-reset`),
+    onSuccess: async (response) => {
+      const data = await response.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/player", PLAYER_ID] });
+      
+      if (data.success) {
+        toast({
+          title: "Game Reset Complete!",
+          description: "Welcome back to your new pumpkin patch - you're starting fresh with 25 coins, 3 pumpkin seeds, and 3 apple seeds!",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Reset failed",
+        description: "Please try again or contact support",
+        variant: "destructive",
+      });
+    },
+  });
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-800 via-amber-900 to-orange-800 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950 relative overflow-hidden">
       {/* Mountain Silhouettes */}
@@ -318,6 +352,58 @@ export default function Map() {
             </Button>
           </div>
         )}
+
+        {/* Settings Menu at bottom */}
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-slate-800/80 border-slate-600 text-slate-100 hover:bg-slate-700/90 hover:text-white backdrop-blur-sm"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-slate-800 border-slate-600">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-white">Reset Game Progress</AlertDialogTitle>
+                <AlertDialogDescription className="text-slate-300">
+                  Are you sure? All of your progress will be lost. This will reset your account to starting configuration:
+                  <ul className="mt-2 list-disc list-inside text-sm">
+                    <li>Level 1 with 0 experience</li>
+                    <li>25 coins</li>
+                    <li>3 pumpkin seeds</li>
+                    <li>3 apple seeds</li>
+                    <li>3x3 farm field</li>
+                    <li>1 kitchen oven slot</li>
+                    <li>All plots and ovens cleared</li>
+                  </ul>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-slate-700 text-white hover:bg-slate-600">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => gameResetMutation.mutate()}
+                  disabled={gameResetMutation.isPending}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  {gameResetMutation.isPending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Resetting...
+                    </>
+                  ) : (
+                    "Continue - Reset Game"
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );
