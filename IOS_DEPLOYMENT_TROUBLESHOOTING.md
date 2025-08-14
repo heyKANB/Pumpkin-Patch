@@ -41,7 +41,7 @@ The iOS app builds successfully but UI changes (Settings menu, game reset functi
 When the next deployment completes, check:
 
 1. **CodeMagic Build Logs**: Look for "Settings found in bundle" confirmations
-2. **iOS App Console**: Should show "🚀 Pumpkin Patch v2.0.15 build 20 loaded"
+2. **iOS App Console**: Should show "🚀 Pumpkin Patch v2.0.16 build 21 loaded"
 3. **Settings Button**: Should appear at bottom of map screen
 4. **Reset Functionality**: Settings > Reset should work without "Unable to reset" error
 

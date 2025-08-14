@@ -3,10 +3,8 @@ import App from "./App";
 import "./index.css";
 
 // Version logging for deployment verification
-console.log('🚀 Pumpkin Patch v2.0.15 build 20 loaded');
-console.log('🎯 Features: Settings menu, complete game reset');
-console.log('🚀 Pumpkin Patch v2.0.15 build 20 loaded');
-console.log('🎯 Features: Settings menu, complete game reset');
+console.log('🚀 Pumpkin Patch v2.0.16 build 21 loaded');
+console.log('🎯 Features: iOS deployment fixes, cache busting');
 
 // Add error handling for iOS
 window.addEventListener('error', (e) => {
