@@ -25,7 +25,12 @@ workflows:
           npm ci
       - name: Build web app
         script: |
+          echo "=== Cleaning previous build ==="
+          rm -rf dist/
+          echo "=== Building web app for production ==="
           NODE_ENV=production npm run build
+          echo "=== Build completed, checking output ==="
+          ls -la dist/
       - name: Initialize Capacitor iOS platform
         script: |
           if [ ! -d "ios" ]; then
@@ -36,13 +41,26 @@ workflows:
           fi
       - name: Sync Capacitor with built assets
         script: |
-          npx cap sync ios
+          echo "=== Cleaning Capacitor cache ==="
+          npx cap clean ios
+          echo "=== Syncing Capacitor with fresh build ==="
+          npx cap sync ios --force
+          echo "=== Verifying sync completed ==="
+          ls -la ios/App/App/public/
+          echo "=== Checking iOS bundle contents ==="
+          grep -o "Settings" ios/App/App/public/assets/index-*.js | head -5 || echo "Settings not found in iOS bundle"
+          echo "=== Verifying version in iOS bundle ==="
+          grep "app-version\|build-number" ios/App/App/public/index.html || echo "Version info not synced"
       - name: Verify build output
         script: |
           echo "=== Checking build output ==="
           ls -la dist/public/
           echo "=== Checking HTML file ==="
           head -20 dist/public/index.html
+          echo "=== Verifying Settings component in bundle ==="
+          grep -o "Settings" dist/public/assets/index-*.js | head -5 || echo "Settings not found in bundle"
+          echo "=== Checking version info ==="
+          grep "app-version\|build-number" dist/public/index.html || echo "Version info not found"
       - name: Install CocoaPods dependencies
         script: |
           cd ios/App && pod install

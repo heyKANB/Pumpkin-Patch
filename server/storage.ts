@@ -970,10 +970,7 @@ export class MemStorage implements IStorage {
     });
   }
 
-  // Get all players (for admin operations)
-  async getAllPlayers(): Promise<Player[]> {
-    return Array.from(this.players.values());
-  }
+
 
   // Customer Order operations
   private getOrderKey(playerId: string, orderId: string): string {
