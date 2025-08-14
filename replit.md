@@ -102,7 +102,7 @@ Daily Rewards: Players can collect 5 free coins once every 24 hours. This resets
 - **Bundle ID**: com.huntergames.pumpkinpatch
 - **Apple ID**: 6749664824
 - **App Version**: 2.0.16
-- **Build Number**: 21
+- **Build Number**: 22
 - **App Store Connect API**: Key ID 7629KQWD3Z, Issuer ID 27cc409c-83b9-4d67-a87f-99fc3d7c6f07
 - **Provisioning Profile**: PumpkinPatch2
 - **CodeMagic Integration**: Configured for automated App Store deployment with AFTER_APPROVAL release type on Mac mini M2 instances

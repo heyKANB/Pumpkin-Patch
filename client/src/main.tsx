@@ -3,7 +3,7 @@ import App from "./App";
 import "./index.css";
 
 // Version logging for deployment verification
-console.log('🚀 Pumpkin Patch v2.0.16 build 21 loaded');
+console.log('🚀 Pumpkin Patch v2.0.16 build 22 loaded');
 console.log('🎯 Features: iOS deployment fixes, cache busting');
 
 // Add error handling for iOS

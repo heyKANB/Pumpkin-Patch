@@ -15,7 +15,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         APP_VERSION: "2.0.16"
-        BUILD_NUMBER: "21"
+        BUILD_NUMBER: "22"
       node: v20.18.0
       xcode: latest
       cocoapods: default
@@ -39,14 +39,27 @@ workflows:
           else
             echo "iOS platform already exists, skipping initialization"
           fi
+      - name: Copy Capacitor config
+        script: |
+          echo "=== Ensuring required Capacitor files exist ==="
+          cp config.xml ios/App/App/config.xml
+          echo "=== Creating capacitor.config.json ==="
+          npx cap config --json > ios/App/App/capacitor.config.json || echo "Config JSON creation failed"
       - name: Sync Capacitor with built assets
         script: |
           echo "=== Cleaning Capacitor cache ==="
           npx cap clean ios
           echo "=== Syncing Capacitor with fresh build ==="
           npx cap sync ios --force
-          echo "=== Verifying sync completed ==="
+          echo "=== Manual copy of public directory ==="
+          mkdir -p ios/App/App/public
+          cp -r dist/public/* ios/App/App/public/
+          echo "=== Verifying critical files exist ==="
           ls -la ios/App/App/public/
+          ls -la ios/App/App/config.xml
+          ls -la ios/App/App/capacitor.config.json
+          echo "=== Checking for required assets ==="
+          ls -la ios/App/App/public/assets/
           echo "=== Checking iOS bundle contents ==="
           grep -o "Settings" ios/App/App/public/assets/index-*.js | head -5 || echo "Settings not found in iOS bundle"
           echo "=== Verifying version in iOS bundle ==="

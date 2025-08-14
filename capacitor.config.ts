@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.huntergames.pumpkinpatch',
   appName: 'Pumpkin Patch',
   webDir: 'dist/public',
+  bundledWebRuntime: false,
 
   server: {
     androidScheme: 'https',
@@ -14,7 +15,8 @@ const config: CapacitorConfig = {
     contentInset: 'automatic',
     scrollEnabled: true,
     backgroundColor: '#1a1a1a',
-    allowsLinkPreview: false
+    allowsLinkPreview: false,
+    limitsNavigationsToAppBoundDomains: false
   },
   plugins: {
     SplashScreen: {
